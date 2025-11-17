@@ -1185,45 +1185,112 @@ body {
          * AGORA COM CONTROLE DE MONITOR DE CACHE
          */
         function switchTab(sheetName) {
-            autoSaveContagemOnTabChange();
+    // ✅ SALVA OS DADOS DA CONTAGEM ANTES DE MUDAR PARA CONFERÊNCIA
+    const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+    
+    if (currentTab === 'CONTAGEM LOJA' && sheetName === 'CONFERENCIA') {
+        console.log('🔄 Saindo da Contagem Loja para Conferência - Salvando dados...');
+        
+        const cacheKey = `${CACHE_KEY}_${currentContador}`;
+        const cachedData = loadFromCache(cacheKey);
+        const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
+        
+        if (hasData) {
+            // ✅ SALVA OS DADOS E SÓ DEPOIS MUDA PARA CONFERÊNCIA
+            showNotification('Salvando dados da contagem antes de carregar conferência...', 'loading');
             
-            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
-            if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
-                if (cacheChangeTimer) {
-                    clearTimeout(cacheChangeTimer);
-                }
-            }
-            
-            if (sheetName === 'CONTAGEM LOJA') {
-                startCacheChangeMonitor();
-            }
-
-            tabButtons.forEach(btn => {
-                if (btn.dataset.tab === sheetName) {
-                    btn.classList.add('border-indigo-600', 'text-indigo-600');
-                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-                } else {
-                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
-                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-                }
+            processBatchUpdate().then(() => {
+                // ✅ DEPOIS DE SALVAR, MUDA PARA CONFERÊNCIA
+                console.log('✅ Dados salvos, mudando para Conferência...');
+                realizarMudancaParaConferencia(sheetName);
+            }).catch((error) => {
+                // ✅ SE DER ERRO, MUDA MESMO ASSIM MAS AVISA
+                console.error('❌ Erro ao salvar, mas mudando para Conferência:', error);
+                showNotification('Erro ao salvar dados, carregando conferência...', 'warning', 2000);
+                realizarMudancaParaConferencia(sheetName);
             });
-
-            contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
             
-            if (sheetName === "NOTA FISCAL") {
-                contentStack.innerHTML = renderNotaFiscalLayout();
-            } else if (sheetName === "CONTAGEM LOJA") {
-                contentStack.innerHTML = renderContagemLojaLayout();
-                currentContador = 'CONTAGEM LOJA';
-            } else if (sheetName === "CONFERENCIA") {
-                contentStack.innerHTML = renderConferenciaLayout();
-            }
-            
-            loadTabContent(sheetName);
-
-
-			    clearSearch(); // Limpa busca ao mudar de aba
+            return; // ⚠️ IMPORTANTE: para a execução aqui
         }
+    }
+    
+    // ✅ SE NÃO FOR PARA CONFERÊNCIA OU NÃO HOUVER DADOS, MUDA NORMALMENTE
+    realizarMudancaNormal(sheetName);
+}
+
+/**
+ * ✅ FUNÇÃO AUXILIAR: Mudança normal para qualquer aba
+ */
+function realizarMudancaNormal(sheetName) {
+    autoSaveContagemOnTabChange();
+    
+    const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+    if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
+        if (cacheChangeTimer) {
+            clearTimeout(cacheChangeTimer);
+        }
+    }
+    
+    if (sheetName === 'CONTAGEM LOJA') {
+        startCacheChangeMonitor();
+    }
+
+    tabButtons.forEach(btn => {
+        if (btn.dataset.tab === sheetName) {
+            btn.classList.add('border-indigo-600', 'text-indigo-600');
+            btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+        } else {
+            btn.classList.remove('border-indigo-600', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+        }
+    });
+
+    contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
+    
+    if (sheetName === "NOTA FISCAL") {
+        contentStack.innerHTML = renderNotaFiscalLayout();
+    } else if (sheetName === "CONTAGEM LOJA") {
+        contentStack.innerHTML = renderContagemLojaLayout();
+        currentContador = 'CONTAGEM LOJA';
+    } else if (sheetName === "CONFERENCIA") {
+        contentStack.innerHTML = renderConferenciaLayout();
+    }
+    
+    loadTabContent(sheetName);
+    clearSearch(); // Limpa busca ao mudar de aba
+}
+
+/**
+ * ✅ FUNÇÃO AUXILIAR: Mudança ESPECÍFICA para Conferência (após salvamento)
+ */
+function realizarMudancaParaConferencia(sheetName) {
+    // ✅ ATUALIZA A ABA VISUALMENTE
+    tabButtons.forEach(btn => {
+        if (btn.dataset.tab === sheetName) {
+            btn.classList.add('border-indigo-600', 'text-indigo-600');
+            btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+        } else {
+            btn.classList.remove('border-indigo-600', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+        }
+    });
+
+    contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
+    contentStack.innerHTML = renderConferenciaLayout();
+    
+    // ✅ CARREGA A CONFERÊNCIA COM UM PEQUENO DELAY PARA DADOS ATUALIZADOS
+    setTimeout(() => {
+        loadTabContent("CONFERENCIA");
+        
+        // ✅ FORÇA UMA ATUALIZAÇÃO EXTRA APÓS 1.5 SEGUNDOS
+        setTimeout(() => {
+            console.log('🔄 Atualização extra da Conferência para dados recentes...');
+            loadTabContent("CONFERENCIA");
+        }, 1500);
+    }, 500);
+    
+    clearSearch();
+}
 
         // ÍCONES
         const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
