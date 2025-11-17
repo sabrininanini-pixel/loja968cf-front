@@ -1,0 +1,3327 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+	
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conferir Nota Fiscal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+
+	
+    <!-- ✅ CACHE BUSTING - FORÇA ATUALIZAÇÃO -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+   <style>
+    /* ✅ NOVO ESTILO BASE - MODERNO */
+    :root {
+        --primary: #6388f1;
+        --primary-dark: #4f46e5;
+        --secondary: #6c757d;
+        --success: #10b981;
+        --light: #f8f9fa;
+        --dark: #374151;
+        --border: #e5e7eb;
+        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        --font-main: 'Poppins', sans-serif;
+        --bg-color: #f8fafc;
+    }
+    
+    body {
+        font-family: var(--font-main) !important;
+        background-color: var(--bg-color);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .mock-table th, .mock-table td {
+        padding: 14px 16px !important;
+        text-align: left;
+        border-bottom: 1px solid var(--border); 
+        border-right: 1px solid var(--border); 
+        font-family: var(--font-main) !important;
+    }
+    
+    .mock-table th:last-child, .mock-table td:last-child {
+        border-right: none;
+    }
+
+    .mock-table th {
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--dark) !important;
+        background-color: var(--light) !important;
+    }
+    
+	   .mock-table tr:hover:not(#contagem-table tr) {
+    background-color: #f8f9fa !important;
+}
+
+    /* ✅ HEADER CORRIGIDO - SEM SCROLL HORIZONTAL */
+header.print-hidden {
+    background: 
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 2px, transparent 2px, transparent 4px),
+        linear-gradient(135deg, #0f172a, #1e1b4b) !important;
+    color: white;
+    margin: 0;
+    padding: 16px 0;
+    width: 100%; /* ✅ MUDOU DE 100vw PARA 100% */
+    position: relative;
+    overflow: hidden; /* ✅ JÁ ESTAVA CORRETO */
+    font-family: var(--font-main) !important;
+    /* ❌ REMOVE: margin-left: calc(-50vw + 50%) */
+}
+
+/* ✅ GARANTIR QUE O CONTEÚDO INTERNO NÃO CAUSE SCROLL */
+header.print-hidden .w-full {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ✅ CORREÇÃO EXTRA PARA O BODY */
+body {
+    overflow-x: hidden; /* ✅ IMPEDE SCROLL HORIZONTAL NO BODY */
+    max-width: 100vw;
+}
+    /* 🔥 MANTENHA O RESTO DO SEU CSS ATUAL AQUI (modo scroll, impressão, etc) */
+    /* ---------------------------------------------------------------- */
+    /* --- Estilos de Edição/Conferência --- */
+    /* ---------------------------------------------------------------- */
+    
+    /* Estilos base para a coluna Diferença (5ª coluna visível) */
+    #conferencia-content tr td:nth-child(5) { 
+        font-weight: bold;
+        text-align: center; 
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* --- LARGURAS FIXAS GERAIS (DEFAULT TRUNCADO) --- */
+    /* --- Esta regra é "desligada" pela classe .expand-mode-cell --- */
+    /* ---------------------------------------------------------------- */
+    
+    /* Coluna 1 (Código de Barras - 210px) da Conferência */
+    
+	/*  
+	#conferencia-table th:nth-child(1),
+    #conferencia-table td:nth-child(1) {
+         width: 210px; 
+         min-width: 210px;
+         max-width: 210px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+    }
+    */
+	   
+    /* Colunas numéricas/estreitas (70px) da Conferência 
+    #conferencia-table th:nth-child(3), 
+    #conferencia-table td:nth-child(3),
+    #conferencia-table th:nth-child(4), 
+    #conferencia-table td:nth-child(4),
+    #conferencia-table th:nth-child(5), 
+    #conferencia-table td:nth-child(5),
+    #conferencia-table th:nth-child(6), 
+    #conferencia-table td:nth-child(6) {
+         width: 70px; 
+         min-width: 70px;
+         max-width: 70px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+    }
+    
+    /* Colunas numéricas/estreitas (70px) da Nota Fiscal 
+    #notafiscal-table th:nth-child(2),
+    #notafiscal-table td:nth-child(2),
+    #notafiscal-table th:nth-child(4),
+    #notafiscal-table td:nth-child(4) {
+         width: 70px; 
+         min-width: 70px;
+         max-width: 70px;
+         overflow: hidden; 
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         text-align: center; 
+    }
+*/
+    /* Coluna Código de Barras (300px) da Contagem Loja */
+    #contagem-table th:nth-child(1),
+    #contagem-table td:nth-child(1) {
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        overflow: hidden; 
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    /* Coluna Descrição da Contagem Loja - CORRIGIDA: REMOVIDO PADDING E ALINHAMENTO À ESQUERDA */
+    #contagem-table th:nth-child(2),
+    #contagem-table td:nth-child(2) {
+        padding-left: 0 !important;
+        width: auto;
+        text-align: left !important;
+    }
+
+    /* Centraliza os valores numéricos da CONFERENCIA */
+    #conferencia-table td:nth-child(3), 
+    #conferencia-table td:nth-child(4),
+    #conferencia-table td:nth-child(5) {
+         text-align: center; 
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* --- ESTILOS DE MODO (TOGGLE POR JS) --- */
+    /* ---------------------------------------------------------------- */
+
+    /* Estilo base para MODO EXPANDIDO */
+    .expand-mode-cell {
+        max-width: none !important;
+        min-width: 0 !important;
+        overflow-x: visible !important;
+        white-space: normal !important;
+    }
+
+
+    /* Classe para MODO SCROLL (COLUNAS DE DESCRIÇÃO E TEXTO LONGO - 150px) */
+    .scroll-mode-cell {
+        max-width: 150px !important; 
+        min-width: 150px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important; 
+        text-overflow: clip !important;
+    }
+    
+    /* Classe para MODO SCROLL (COLUNAS NUMÉRICAS OU ESTREITAS - 70px) */
+    .scroll-mode-cell-numeric {
+        width: 70px !important; 
+        min-width: 70px !important;
+        max-width: 70px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        text-align: left !important;
+    }
+    
+    /* Classe para Código de Barras (210px) */
+    .scroll-mode-cell-code {
+        width: 210px !important; 
+        min-width: 210px !important;
+        max-width: 210px !important;
+        overflow-x: auto !important; 
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        text-align: left !important;
+    }
+
+    /* Classes usadas pelo JavaScript para aplicar as cores */
+    .bg-fee2e2 { background-color: #fee2e2; }
+    .text-b91c1c { color: #b91c1c; }
+    .bg-green-100 { background-color: #d1fae5; }
+    .text-green-700 { color: #047857; }
+
+    /* Estilo para linhas com código mas sem descrição na Contagem Loja */
+    .bg-red-50 {
+        background-color: #fecaca !important;
+    }
+
+    .bg-red-50:hover {
+        background-color: #fecaca !important;
+    }
+
+    /* Estilo para células editáveis */
+    [contenteditable="true"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #c7d2fe; 
+    }
+    
+    /* ---------------------------------------------------------------- */
+    /* --- Estilos de Impressão (A4) --- */
+    /* ---------------------------------------------------------------- */
+   @media print {
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        margin: 0 !important;
+        padding: 10px !important;
+        width: 100% !important;
+        min-height: 297mm;
+        font-size: 10pt !important;
+        line-height: 1.2 !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    .container, .bg-white, .shadow-lg {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        border: none !important;
+        background: white !important;
+    }
+    
+    /* Ocultar elementos não essenciais */
+    header, nav, #paste-modal, #notifications-container, .print-hidden,
+    .flex.border-b, .flex.flex-wrap, button, .tab-button {
+        display: none !important;
+    }
+
+    /* ✅ CORREÇÃO DA TABELA - FORÇAR CABER NA PÁGINA */
+    .mock-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 8pt !important;
+        border-collapse: collapse;
+        page-break-inside: auto;
+    }
+    
+    .mock-table th, .mock-table td {
+        padding: 3px 4px !important;
+        border: 1px solid #ccc !important;
+        font-size: 8pt !important;
+        line-height: 1.1 !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .mock-table th {
+        background-color: #f8f9fa !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    
+    /* ✅ REMOVER TODOS OS MODOS DE LARGURA FIXA NA IMPRESSÃO */
+    .scroll-mode-cell, .scroll-mode-cell-numeric, .expand-mode-cell, 
+    .scroll-mode-cell-code, .truncate-mode-cell {
+        max-width: none !important;
+        min-width: auto !important;
+        width: auto !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        text-overflow: clip !important;
+    }
+    
+    /* ✅ FORÇAR QUEBRA DE TEXTO LONGO */
+    .mock-table td {
+        word-break: break-word;
+        hyphens: auto;
+    }
+    
+    /* ✅ AJUSTAR LARGURAS ESPECÍFICAS DAS COLUNAS PARA IMPRESSÃO */
+    #conferencia-table th:nth-child(1),
+    #conferencia-table td:nth-child(1) {
+        width: 15% !important; /* Código de Barras */
+    }
+    
+    #conferencia-table th:nth-child(2),
+    #conferencia-table td:nth-child(2) {
+        width: 40% !important; /* Descrição */
+    }
+    
+    #conferencia-table th:nth-child(3),
+    #conferencia-table td:nth-child(3),
+    #conferencia-table th:nth-child(4),
+    #conferencia-table td:nth-child(4),
+    #conferencia-table th:nth-child(5),
+    #conferencia-table td:nth-child(5),
+    #conferencia-table th:nth-child(6),
+    #conferencia-table td:nth-child(6) {
+        width: 10% !important; /* Colunas numéricas */
+        text-align: center !important;
+    }
+    
+    /* ✅ MANTER CORES DAS DIVERGÊNCIAS MESMO NA IMPRESSÃO */
+    .bg-fee2e2, .text-b91c1c {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-green-100, .text-green-700 {
+        background-color: #d1fae5 !important;
+        color: #047857 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .bg-yellow-50 {
+        background-color: #fefce8 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* ✅ EVITAR QUEBRA DE LINHA NO MEIO DA LINHA */
+    .mock-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    /* ✅ CABEÇALHO FIXO NA IMPRESSÃO (se possível) */
+    .mock-table thead {
+        display: table-header-group;
+    }
+    
+    .mock-table th {
+        position: static !important;
+    }
+    
+    /* ✅ INFORMAÇÕES DAS NOTAS FISCAIS NA IMPRESSÃO */
+    .mb-4 {
+        margin-bottom: 8px !important;
+    }
+    
+    .mb-4 > div {
+        background: #e5e7eb !important;
+        padding: 4px 6px !important;
+        margin-bottom: 2px !important;
+        font-size: 7pt !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+	       .bg-red-100 {
+        background-color: #fee2e2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+}
+    
+    /* ---------------------------------------------------------------- */
+    /* --- Ajuste de Notificação para Mobile (Compactação) --- */
+    /* ---------------------------------------------------------------- */
+    @media (max-width: 640px) {
+        #notifications-container > div {
+            padding: 0.5rem !important; 
+            gap: 0.5rem !important; 
+            max-width: 80vw;
+        }
+        
+        #notifications-container > div p {
+            font-size: 0.875rem !important;
+        }
+        
+        #notifications-container > div svg {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+        }
+    }
+
+    /* RESPONSIVO */
+    @media (max-width: 768px) {
+        header .flex {
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .nf-info {
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        /* ✅ HEADER MOBILE COM NOVO ESTILO */
+        header.print-hidden {
+            padding: 10px 0 !important;
+        }
+    }
+
+
+/* 🔥 CORREÇÃO DEFINITIVA PARA HEADER MOBILE/DESKTOP */
+.header-mobile {
+    display: none;
+}
+
+.header-desktop {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .header-mobile {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .header-desktop {
+        display: flex !important;
+    }
+}
+
+
+	   /* CONTIDAS AS ABAS DO CONTADOR*/
+	   
+	   @media (max-width: 767px) {
+
+    /* Menu de contadores - contido e com scroll interno */
+    .flex.border-b.border-gray-200.mb-4.print-hidden {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+		padding-bottom: 14px;
+
+		
+}
+
+	   #content-stack {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    gap: 0 !important;
+}
+}
+	   
+	   #content-stack {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    gap: 0 !important;
+
+		   .bg-red-100 {
+    background-color: #fee2e2 !important; /* Vermelho bem suave */
+}
+
+.bg-red-100:hover {
+    background-color: #fecaca !important; /* Vermelho um pouco mais forte no hover */
+}
+	   
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Conferência</h1>
+                    <p class="text-gray-600">Faça login para continuar</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite seu usuário"
+                    >
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Digite sua senha"
+                        >
+                        <button 
+                            type="button" 
+                            id="toggle-password"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            onclick="togglePasswordVisibility()"
+                        >
+                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button 
+                    onclick="login()"
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium"
+                >
+                    Entrar
+                </button>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL (inicialmente oculto) -->
+    <div id="main-system" class="hidden">
+        <div class="mx-auto px-0 py-0 md:px-8">
+            <header class="print-hidden" style="background: linear-gradient(135deg, #1e3a8a, #3730a3); color: white; margin: 0; padding: 16px 0; width: 100vw; margin-left: calc(-50vw + 50%);">
+    <div class="w-full">
+       <!-- MOBILE LAYOUT - COM DISPLAY CONDICIONAL -->
+<div class="header-mobile" style="align-items: center; justify-content: space-between; padding: 8px 12px; font-family: 'Poppins', sans-serif;">
+    <!-- LOGO À ESQUERDA -->
+    <a href="https://www.gtgo.com.br" style="text-decoration: none; color: inherit; flex-shrink: 0;">
+        <div style="font-size: 14px; font-weight: bold; white-space: nowrap;">GTGO</div>
+    </a>
+    
+    <!-- TÍTULO CENTRAL COMPACTO -->
+    <div style="flex: 1; text-align: center; margin: 0 8px; min-width: 0;">
+        <h1 style="font-size: 12px; font-weight: 600; line-height: 1.2; margin: 0; overflow: hidden; text-overflow: ellipsis;">Conferir NFe</h1>
+        <p style="font-size: 10px; opacity: 0.9; margin: 0; overflow: hidden; text-overflow: ellipsis;">Sistema de conferencia e gestão de notas fiscais</p>
+    </div>
+    
+    <!-- BOTÃO SAIR COMPACTO -->
+    <button onclick="logout()" style="flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 6px; font-size: 11px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white; white-space: nowrap;">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Sair</span>
+    </button>
+</div>
+        <!-- DESKTOP LAYOUT -->
+      <div class="header-desktop justify-between items-center max-w-7xl mx-auto px-4">
+            <!-- LOGO GTGO COM LINK -->
+            <a href="https://www.gtgo.com.br" class="flex flex-col items-center text-center" style="text-decoration: none; color: inherit;">
+                <div class="text-xl font-bold">GTGO</div>
+                <div class="text-xs opacity-90 mt-1">Gestão Avançada</div>
+            </a>
+            
+            <!-- TÍTULO CENTRAL -->
+            <div class="flex-1 text-center">
+                <h1 class="text-2xl font-semibold mb-1">Conferir NFe</h1>
+                <p class="text-sm opacity-90 max-w-md mx-auto">Sistema de conferencia e gestão de notas fiscais</p>
+            </div>
+            
+            <!-- BOTÃO SAIR ESTILIZADO -->
+            <button onclick="logout()" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition duration-150 text-sm font-medium border"
+                    style="background: rgba(255, 255, 255, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3);">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 px-0 pt-6 pb-6 md:p-6">
+
+                <nav class="flex border-b border-gray-200 print-hidden">
+                    <button data-tab="NOTA FISCAL" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition-colors duration-150">NOTA FISCAL</button>
+                    <button data-tab="CONTAGEM LOJA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONTAGEM LOJA</button>
+                    <button data-tab="CONFERENCIA" class="tab-button px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">CONFERENCIA</button>
+                </nav>
+
+
+
+<!-- ✅ BOTÃO DE BUSCA UNIVERSAL COM X INTERNO -->
+<div class="flex flex-wrap gap-3 pb-3 mb-3 border-b border-gray-200 print-hidden mt-3">
+    <div class="relative flex-1 min-w-[300px]">
+        <input 
+            type="text" 
+            id="global-search-input"
+            placeholder="Buscar em todas as colunas..." 
+            class="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+        <!-- Ícone de busca (esquerda) -->
+        <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <!-- Botão X (direita) - aparece apenas quando tem texto -->
+        <button 
+            id="clear-search-button"
+            onclick="clearSearch()"
+            class="absolute right-3 top-2.5 h-5 w-5 text-gray-400 hover:text-gray-600 transition duration-150 hidden"
+        >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>
+				
+                <div id="content-stack" class="pt-6">
+                </div>
+
+				
+				
+            </div>
+        </div>
+
+        <div id="paste-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 print-hidden">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
+                <h3 class="text-lg font-bold mb-4">Colar Chave de Acesso (44 dígitos)</h3>
+                <textarea id="chave-acesso-input" class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500" placeholder="Cole a Chave de Acesso (44 dígitos) aqui..."></textarea>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button onclick="hidePasteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">Cancelar</button>
+                    <button onclick="importarXMLPorChave()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition duration-150">Importar XML por Chave</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICAÇÕES FORA DA MAIN-SYSTEM (SEMPRE VISÍVEIS) -->
+    <div id="notifications-container" class="fixed bottom-4 right-4 space-y-2 z-50 print-hidden">
+    </div>
+
+    <script>
+        // =========================================================================
+        // CONFIGURAÇÃO PARA ONLINE - MUDANÇA PRINCIPAL
+        // =========================================================================
+        const BACKEND_URL = "https://api.gtgo.com.br"; // URL do backend online
+        const USER_ID = "web-user-123";
+        
+        // =========================================================================
+        // SISTEMA DE AUTENTICAÇÃO CORRIGIDO
+        // =========================================================================
+
+        let currentUser = null;
+
+        /**
+         * ✅ SISTEMA DE LEMBRAR LOGIN - VERSÃO FORTE
+         */
+        function setupLoginRemember() {
+            console.log("🔧 Iniciando sistema de lembrar login...");
+            
+            const isAndroidApp = typeof Android !== 'undefined';
+            console.log("📱 Ambiente:", isAndroidApp ? "Android APK" : "Navegador");
+            
+            let savedLogin = null;
+            let source = '';
+            
+            // PRIMEIRO: Tenta do Android
+            if (isAndroidApp) {
+                try {
+                    console.log("📱 Tentando carregar do Android...");
+                    const androidData = Android.carregarLogin();
+                    console.log("📱 Resposta do Android:", androidData);
+                    
+                    if (androidData && androidData !== "{}" && androidData !== "null" && androidData !== "") {
+                        savedLogin = JSON.parse(androidData);
+                        source = 'Android';
+                        console.log('✅ Credenciais carregadas do Android');
+                    }
+                } catch (error) {
+                    console.log('❌ Falha no Android, tentando fallback...', error);
+                }
+            }
+            
+            // SEGUNDO: Fallback para localStorage
+            if (!savedLogin) {
+                try {
+                    const localData = localStorage.getItem('nfe_login_credentials');
+                    if (localData) {
+                        savedLogin = JSON.parse(localData);
+                        source = 'LocalStorage';
+                        console.log('✅ Credenciais carregadas do localStorage');
+                    }
+                } catch (error) {
+                    console.log('❌ Erro no localStorage:', error);
+                }
+            }
+            
+            // TERCEIRO: Se encontrou credenciais, preenche os campos
+            if (savedLogin && savedLogin.username && savedLogin.password) {
+                document.getElementById('username').value = savedLogin.username;
+                document.getElementById('password').value = savedLogin.password;
+                console.log(`✅ Campos preenchidos (Fonte: ${source})`);
+                
+            
+                
+            }
+        }
+
+        /**
+         * ✅ SALVAR CREDENCIAIS - VERSÃO ROBUSTA
+         */
+        function saveLoginCredentials(username, password) {
+            const loginData = {
+                username: username,
+                password: password,
+                timestamp: Date.now(),
+                source: 'login_success'
+            };
+            
+            console.log("💾 Salvando credenciais para:", username);
+            
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            // Salva no Android
+            if (isAndroidApp) {
+                try {
+                    Android.salvarLogin(JSON.stringify(loginData));
+                    console.log('✅ Salvo no Android');
+                } catch (error) {
+                    console.log('❌ Erro ao salvar no Android:', error);
+                }
+            }
+            
+            // Salva no localStorage (sempre)
+            try {
+                localStorage.setItem('nfe_login_credentials', JSON.stringify(loginData));
+                console.log('✅ Salvo no localStorage');
+            } catch (error) {
+                console.log('❌ Erro ao salvar no localStorage:', error);
+            }
+            
+        }
+
+        /**
+         * ✅ LIMPAR CREDENCIAIS SALVAS (APENAS QUANDO EXPLICITAMENTE SOLICITADO)
+         */
+        function clearLoginCredentials() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                try {
+                    Android.salvarLogin("", "");
+                    console.log('✅ Credenciais limpas no Android');
+                } catch (error) {
+                    console.log('❌ Erro ao limpar credenciais no Android:', error);
+                }
+            }
+            
+            try {
+                localStorage.removeItem('nfe_login_credentials');
+                console.log('✅ Credenciais limpas no navegador');
+            } catch (error) {
+                console.log('❌ Erro ao limpar credenciais no navegador:', error);
+            }
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            showNotification('Credenciais removidas com sucesso', 'info');
+        }
+
+
+        /**
+         * Realiza o login
+         */
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showNotification('Preencha usuário e senha', 'error');
+                return;
+            }
+
+            showNotification('Autenticando...', 'loading');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                hideNotification();
+
+                if (result.success) {
+                    currentUser = result.user;
+                    showMainSystem();
+                    showNotification(`Bem-vindo, ${username}!`, 'success');
+                    
+                    // ✅ SALVA AS CREDENCIAIS APÓS LOGIN BEM-SUCEDIDO
+                    saveLoginCredentials(username, password);
+                    
+                } else {
+                    showNotification(result.message || 'Erro ao fazer login', 'error');
+                }
+
+            } catch (error) {
+                hideNotification();
+                console.error('Erro no login:', error);
+                
+                if (error.message.includes('401')) {
+                    showNotification('Usuário ou senha incorretos', 'error');
+                } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    showNotification('Erro de conexão com o servidor', 'error');
+                } else {
+                    showNotification('Erro ao fazer login', 'error');
+                }
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/check-auth`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (response.status === 401) {
+                    return false;
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentUser = result.user;
+                    return true;
+                }
+                return false;
+                
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                return false;
+            }
+        }
+
+        /**
+         * ✅ LOGOUT CORRIGIDO - NÃO LIMPA CREDENCIAIS SALVAS
+         */
+        async function logout() {
+            try {
+                await fetch(`${BACKEND_URL}/api/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Erro no logout:', error);
+            } finally {
+                // ✅ MANTÉM AS CREDENCIAIS SALVAS - NÃO LIMPA!
+                currentUser = null;
+                document.getElementById('main-system').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                
+                // ✅ NÃO LIMPA OS CAMPOS - DEIXA AS CREDENCIAIS SALVAS VISÍVEIS
+                // Os campos JÁ devem estar preenchidos pelo setupLoginRemember()
+                
+                showNotification('Logout realizado. Use o botão "Entrar" para acessar novamente.', 'success', 3000);
+                
+                // ✅ FORÇA RECARREGAMENTO DAS CREDENCIAIS (para garantir)
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 500);
+            }
+        }
+
+        /**
+         * Mostra o sistema principal
+         */
+        function showMainSystem() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-system').classList.remove('hidden');
+            
+            initializeSystem();
+        }
+
+        /**
+         * Inicializa o sistema após login
+         */
+        function initializeSystem() {
+            switchTab('NOTA FISCAL');
+            setupBeforeUnloadListener();
+            startCacheChangeMonitor();
+        }
+
+        // Interceptador para verificar autenticação em todas as requisições
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            try {
+                const response = await originalFetch.apply(this, args);
+                
+                // Se for 401 em uma rota protegida E usuário está logado
+                if (response.status === 401 && currentUser) {
+                    const url = args[0] || '';
+                    
+                    // Ignora rotas públicas
+                    if (url.includes('/api/login') || url.includes('/api/check-auth')) {
+                        return response;
+                    }
+                    
+                    console.log('🔐 Sessão expirada para rota protegida:', url);
+                    
+                    // Verifica novamente com check-auth para confirmar
+                    const authCheck = await fetch(`${BACKEND_URL}/api/check-auth`, {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (authCheck.status === 401) {
+                        console.log('✅ Confirmação: sessão realmente expirada');
+                        showNotification('Sessão expirada. Faça login novamente.', 'error');
+                        
+                        // Pequeno delay antes do logout
+                        setTimeout(() => {
+                            if (currentUser) {
+                                logout();
+                            }
+                        }, 2000);
+                    } else {
+                        console.log('❌ Falso positivo - sessão ainda válida');
+                        // Não faz logout - pode ser um erro específico da rota
+                    }
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('Erro no interceptador fetch:', error);
+                throw error;
+            }
+        };
+
+        /**
+         * ✅ INICIALIZAÇÃO CORRIGIDA
+         */
+        async function initializeApp() {
+            console.log("🚀 INICIALIZANDO APLICATIVO...");
+            
+            try {
+                // ✅ CONFIGURA LEMBRAR LOGIN
+                setTimeout(() => {
+                    setupLoginRemember();
+                }, 800);
+                
+                // ✅ VERIFICA AUTENTICAÇÃO EXISTENTE
+                const isAuthenticated = await checkAuth();
+                
+                if (isAuthenticated) {
+                    console.log("✅ Usuário já autenticado, mostrando sistema...");
+                    showMainSystem();
+                    showNotification(`Bem-vindo de volta, ${currentUser}!`, 'success');
+                } else {
+                    console.log("🔐 Usuário não autenticado, mostrando tela de login");
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('main-system').classList.add('hidden');
+                }
+                
+            } catch (error) {
+                console.error('💥 Erro crítico na inicialização:', error);
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('main-system').classList.add('hidden');
+            }
+        }
+
+        // =========================================================================
+        // FIM DO SISTEMA DE AUTENTICAÇÃO
+        // =========================================================================
+
+        // --- Sistema de Cache para Contagem Loja ---
+        const CACHE_KEY = 'contagem_loja_cache';
+        const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 horas em milissegundos
+        const BATCH_SIZE = 50; // Atualizar a cada 50 células
+        let pendingUpdates = new Map(); // Armazena as atualizações pendentes
+        let editCount = 0; // Contador de edições
+        
+        // --- Variáveis para Contadores ---
+        let currentContador = 'CONTAGEM LOJA'; // Contador atual (padrão: Contagem Loja/Contador 1)
+        
+        // --- Cache de dados da Nota Fiscal para busca instantânea ---
+        let notaFiscalData = null;
+        let codigoBarrasIndex = {}; // Índice para busca rápida: {codigo: descricao}
+
+        // --- SISTEMA DE SOM OTIMIZADO ---
+        let lastSoundTime = 0;
+        const SOUND_COOLDOWN = 100; // 100ms entre sons
+        let soundCount = 0;
+
+        // --- VARIÁVEL PARA CONTROLE DE TIMING ---
+        let lastInputTime = 0;
+        const INPUT_DEBOUNCE = 150; // ms para esperar pelo Enter após digitação
+
+        // --- Variáveis para Auto-Save por Mudanças no Cache ---
+        let cacheChangeTimer;
+        const CACHE_CHANGE_TIMEOUT = 5 * 60 * 1000; // 5 minutos em milissegundos
+        let lastCacheCount = 0; // Última contagem conhecida do cache
+
+        // --- Gerenciamento de Abas ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const contentStack = document.getElementById('content-stack');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => switchTab(button.dataset.tab));
+        });
+
+        /**
+         * ⚡ FUNÇÃO: Envia automaticamente o cache quando sair da aba Contagem
+         */
+        function autoSaveContagemOnTabChange() {
+            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+            const isLeavingContagem = currentTab === 'CONTAGEM LOJA';
+            
+            if (isLeavingContagem) {
+                const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                const cachedData = loadFromCache(cacheKey);
+                
+                const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
+                
+                if (hasData) {
+                    console.log('🔄 Auto-save: Saindo da Contagem Loja, enviando dados...');
+                    showNotification('Salvando dados da contagem...', 'loading', 2000);
+                    
+                    processBatchUpdate();
+                }
+            }
+        }
+
+        /**
+         * ⚡ AUTO-SAVE quando a página for fechada/atualizada
+         */
+        function setupBeforeUnloadListener() {
+            window.addEventListener('beforeunload', function (e) {
+                const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+                
+                if (currentTab === 'CONTAGEM LOJA') {
+                    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                    const cachedData = loadFromCache(cacheKey);
+                    const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
+                    
+                    if (hasData) {
+                        console.log('🔄 Tentando salvar antes de sair...');
+                        
+                        fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ 
+                                sheet_name: currentContador,
+                                updates: Object.entries(cachedData).map(([range, value]) => ({
+                                    range: range,
+                                    value: value
+                                }))
+                            }),
+                            keepalive: true
+                        }).catch(err => console.log('Auto-save falhou:', err));
+                    }
+                }
+            });
+        }
+
+        /**
+         * 🆕 VERIFICA se houve mudança no cache e reseta o timer se necessário
+         */
+        function checkCacheChange() {
+            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+            
+            if (currentTab !== 'CONTAGEM LOJA') {
+                return false;
+            }
+
+            const cacheKey = `${CACHE_KEY}_${currentContador}`;
+            const cachedData = loadFromCache(cacheKey);
+            const currentCacheCount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
+            
+            console.log(`🔍 Monitor Cache: ${lastCacheCount} -> ${currentCacheCount}`);
+            
+            if (currentCacheCount !== lastCacheCount) {
+                console.log(`🔄 Mudança detectada no cache! Resetando timer de 5 minutos.`);
+                lastCacheCount = currentCacheCount;
+                resetCacheChangeTimer();
+                return true;
+            }
+            
+            return false;
+        }
+
+        /**
+         * 🆕 Reseta o timer de mudanças no cache
+         */
+        function resetCacheChangeTimer() {
+            if (cacheChangeTimer) {
+                clearTimeout(cacheChangeTimer);
+            }
+            
+            cacheChangeTimer = setTimeout(() => {
+                checkAndAutoSaveByCache();
+            }, CACHE_CHANGE_TIMEOUT);
+            
+            console.log(`⏰ Timer de cache resetado: 5 minutos`);
+        }
+
+        /**
+         * 🆕 Verifica e executa auto-save baseado em mudanças no cache
+         */
+        function checkAndAutoSaveByCache() {
+            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+            
+            if (currentTab === 'CONTAGEM LOJA') {
+                const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                const cachedData = loadFromCache(cacheKey);
+                const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
+                
+                if (hasData) {
+                    console.log('🔄 Auto-save por inatividade de cache: 5 minutos sem alterações');
+                    showNotification('Salvando dados automaticamente...', 'loading', 3000);
+                    processBatchUpdate();
+                }
+            }
+            
+            startCacheChangeMonitor();
+        }
+
+        /**
+         * 🆕 Inicia o monitor de mudanças no cache
+         */
+        function startCacheChangeMonitor() {
+            if (cacheChangeTimer) {
+                clearTimeout(cacheChangeTimer);
+            }
+            
+            const cacheKey = `${CACHE_KEY}_${currentContador}`;
+            const cachedData = loadFromCache(cacheKey);
+            lastCacheCount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
+            
+            console.log(`🔍 Iniciando monitor de cache. Contagem inicial: ${lastCacheCount}`);
+            
+            setInterval(() => {
+                checkCacheChange();
+            }, 30000);
+            
+            resetCacheChangeTimer();
+        }
+
+        /**
+         * Altera a aba ativa e carrega o conteúdo.
+         * AGORA COM CONTROLE DE MONITOR DE CACHE
+         */
+        function switchTab(sheetName) {
+            autoSaveContagemOnTabChange();
+            
+            const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
+            if (currentTab === 'CONTAGEM LOJA' && sheetName !== 'CONTAGEM LOJA') {
+                if (cacheChangeTimer) {
+                    clearTimeout(cacheChangeTimer);
+                }
+            }
+            
+            if (sheetName === 'CONTAGEM LOJA') {
+                startCacheChangeMonitor();
+            }
+
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === sheetName) {
+                    btn.classList.add('border-indigo-600', 'text-indigo-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                } else {
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                }
+            });
+
+            contentStack.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados de ${sheetName}...</div>`;
+            
+            if (sheetName === "NOTA FISCAL") {
+                contentStack.innerHTML = renderNotaFiscalLayout();
+            } else if (sheetName === "CONTAGEM LOJA") {
+                contentStack.innerHTML = renderContagemLojaLayout();
+                currentContador = 'CONTAGEM LOJA';
+            } else if (sheetName === "CONFERENCIA") {
+                contentStack.innerHTML = renderConferenciaLayout();
+            }
+            
+            loadTabContent(sheetName);
+
+
+			    clearSearch(); // Limpa busca ao mudar de aba
+        }
+
+        // ÍCONES
+        const documentIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
+        const printerIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m-1-5a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2zm-4 4h4v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2h4z" /></svg>`;
+
+
+        /**
+         * Retorna o HTML completo da aba NOTA FISCAL (botões + placeholder da tabela).
+         */
+        function renderNotaFiscalLayout() {
+            return `
+                <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                    <label for="xml-file-upload" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 cursor-pointer text-sm font-medium border border-gray-300">
+                        <span class="text-orange-600">${documentIcon}</span>
+                        <span>Importar Nota Fiscal (XML)</span>
+                    </label>
+                    <input type="file" id="xml-file-upload" accept=".xml" class="hidden" onchange="handleFileUploadChange(event)">
+                    
+                    <button id="show-paste-modal" onclick="showPasteModal()" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300">
+                        <span class="text-yellow-600">${documentIcon}</span>
+                        <span>Importar por Chave de Acesso</span>
+                    </button>
+                    
+                   <button onclick="toggleScrollMode('NOTA FISCAL')" id="scroll-button-notafiscal" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+    <span>Modo Scroll</span>
+</button>
+
+                    <button onclick="confirmClearAllSheets()" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg shadow-sm hover:bg-red-100 transition duration-150 text-sm font-medium border border-red-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-2 0v6a1 1 0 102 0V7z" clip-rule="evenodd" /></svg>
+                        <span>Apagar Dados</span>
+                    </button>
+                </div>
+                <div id="dynamic-table-content">
+                    <p class="text-center text-gray-400 py-10">Use o botão de importação (XML) para carregar dados nesta aba.</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Retorna o HTML completo da aba CONTAGEM LOJA com mini-menu de contadores.
+         */
+        function renderContagemLojaLayout() {
+            return `
+                <div id="contagem-loja-content">
+                    <!-- Mini-menu de Contadores -->
+                    <div class="flex border-b border-gray-200 mb-4 print-hidden">
+                        <button data-contador="CONTAGEM LOJA" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 transition-colors duration-150">Contador 1</button>
+                        <button data-contador="CONTADOR 2" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 2</button>
+                        <button data-contador="CONTADOR 3" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 3</button>
+                        <button data-contador="CONTADOR 4" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 4</button>
+                        <button data-contador="CONTADOR 5" class="contador-button px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-colors duration-150">Contador 5</button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p class="font-semibold text-yellow-800 text-lg">Escanear abaixo</p>
+                            <p class="text-yellow-600 text-sm mt-1">Dados salvos localmente (atualização em lote)</p>
+                        </div>
+                        <button onclick="forceBatchUpdate()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                            <span>Forçar Envio</span>
+                            <span id="pending-count" class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
+                        </button>
+                    </div>
+                    <div id="dynamic-table-content-contagem">
+                        <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        /**
+         * Retorna o HTML completo da aba CONFERENCIA (com botão de impressão e modo scroll).
+         */
+        function renderConferenciaLayout() {
+    return `
+        <div id="conferencia-content">
+            <div class="flex flex-wrap gap-3 pb-4 mb-4 border-b border-gray-200 print-hidden">
+                <button onclick="printConferencia()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                    <span class="text-blue-600">${printerIcon}</span>
+                    <span>Imprimir ou salvar em PDF</span>
+                </button>
+                
+                <!-- ✅ NOVO BOTÃO EXPORTAR EXCEL -->
+                <button onclick="exportarParaExcel()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg shadow-sm hover:bg-green-200 transition duration-150 text-sm font-medium border border-green-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Exportar Excel</span>
+                </button>
+                
+                <!-- ✅ NOVO BOTÃO 1: MOSTRAR APENAS DIVERGÊNCIAS -->
+                <button onclick="filtrarDivergencias()" id="divergencias-button" class="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg shadow-sm hover:bg-red-200 transition duration-150 text-sm font-medium border border-red-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span>Mostrar apenas divergências</span>
+                </button>
+                
+                <!-- ✅ NOVO BOTÃO 2: INTEGRAR NOTA -->
+                <button onclick="abrirIntegracaoNota()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg shadow-sm hover:bg-blue-200 transition duration-150 text-sm font-medium border border-blue-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    <span>Integrar nota</span>
+                </button>
+                
+                <button onclick="toggleScrollMode('CONFERENCIA')" id="scroll-button-conferencia" class="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:bg-indigo-200 transition duration-150 text-sm font-medium border border-indigo-300">
+                    <span>Modo Scroll</span>
+                </button>
+            </div>
+            <div id="dynamic-table-content-conferencia">
+                <p class="text-center text-gray-400 py-10">Carregando dados...</p>
+            </div>
+        </div>
+    `;
+}
+
+        /**
+         * Abre a caixa de diálogo de impressão do navegador com estilos A4.
+         */
+        function printConferencia() {
+            window.print();
+        }
+
+        /**
+         * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas e 2 colunas.
+         */
+        function renderContagemTableFixedRows(data, headers) {
+            const fixedRows = 3000;
+            
+            const cacheKey = `${CACHE_KEY}_${currentContador}`;
+            const cachedData = loadFromCache(cacheKey);
+            
+            const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
+                                 ? data.slice(1) 
+                                 : data;
+
+            let html = `
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="contagem-table">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th>Código de Barras</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
+                const sheetRowIndex = rowIndex + 1;
+                const sheetRangeA = `A${sheetRowIndex}`;
+                const sheetRangeC = `C${sheetRowIndex}`;
+                
+                let cellValueA = '';
+                if (cachedData[sheetRangeA] !== undefined) {
+                    cellValueA = cachedData[sheetRangeA];
+                } else if (existingData[rowIndex] && existingData[rowIndex][0] !== undefined) {
+                    cellValueA = existingData[rowIndex][0];
+                }
+                
+                let cellValueC = '';
+                if (cachedData[sheetRangeC] !== undefined) {
+                    cellValueC = cachedData[sheetRangeC];
+                } else if (existingData[rowIndex] && existingData[rowIndex][2] !== undefined) {
+                    cellValueC = existingData[rowIndex][2];
+                }
+
+                const hasRedBackground = cellValueA !== '' && cellValueC === '';
+                const rowClass = hasRedBackground ? 'bg-red-50' : '';
+
+                const editAttributes = `contenteditable="true"
+                                        onblur="handleContagemCellEdit(this, '${sheetRangeA}', '${currentContador}')"
+                                        onkeydown="handleContagemKeyPress(event, '${sheetRangeA}', '${currentContador}')"
+                                        oninput="handleContagemCellInput(this)"
+                                        data-original-value="${cellValueA}"
+                                        data-sheet-range="${sheetRangeA}"`;
+                
+                const cellClassesA = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition expand-mode-cell';
+
+                html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">
+                            <td ${editAttributes} onkeydown="handleContagemCellKeydown(event, this)" class="${cellClassesA}">${cellValueA}</td>
+                            <td class="expand-mode-cell descricao-cell" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
+                         </tr>`;
+            }
+
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+
+        /**
+         * Renderiza os dados do Sheets em uma tabela HTML (usado para NF e Conferencia).
+         */
+        function renderTable(sheetName, data, headers) {
+            
+            if (!data || data.length === 0) {
+                return `<p class="text-center text-gray-500 py-10">Nenhum dado encontrado no Google Sheets para esta aba.</p>`;
+            }
+
+            const isConferencia = sheetName === "CONFERENCIA";
+            const isStatusEditable = isConferencia;
+            
+            let tableID = '';
+            if (sheetName === 'CONFERENCIA') {
+                tableID = 'conferencia-table';
+            } else if (sheetName === 'NOTA FISCAL') {
+                tableID = 'notafiscal-table';
+            }
+
+            let html = `
+                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+                    <table class="mock-table w-full text-sm" id="${tableID}">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>`;
+            
+            headers.forEach(h => {
+                html += `<th class="w-auto whitespace-nowrap">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            let dataRows = data;
+            
+            if (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) {
+                dataRows = data.slice(1);
+            }
+
+            dataRows.forEach((row, rowIndex) => {
+    const isRowEmpty = row.length === 0 || row.every(cell => !cell || String(cell).trim() === '');
+    if (isRowEmpty) return; 
+
+    const sheetRowIndex = (data[0][0] === headers[0] ? rowIndex + 2 : rowIndex + 1);
+    
+    // ✅ VERIFICA SE É UMA LINHA DE INFORMAÇÕES DA NOTA FISCAL
+    const isInfoRow = row.some(cell => 
+        cell && String(cell).includes('Data:') && 
+        String(cell).includes('Pedido:') && 
+        String(cell).includes('Chave:')
+    );
+    
+    const rowClass = isInfoRow ? 'bg-blue-200' : '';
+    
+    html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">`;
+                
+                for (let i = 0; i < headers.length; i++) {
+                    const cellValue = row[i] !== undefined ? row[i] : '';
+                    
+                    const sheetCol = String.fromCharCode(65 + i);
+                    const sheetRange = `${sheetCol}${sheetRowIndex}`;
+
+                    let editAttributes = '';
+                    let cellClasses = '';
+
+                    const isCellEditable = (isStatusEditable && i === 5);
+
+                    if (isCellEditable) {
+                        editAttributes = `contenteditable="true"
+                                         onblur="handleCellEdit(this, '${sheetRange}', '${sheetName}')"
+                                         data-original-value="${cellValue}"
+                                         data-sheet-range="${sheetRange}"`;
+                        
+                        cellClasses = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition';
+                    }
+                    
+                    let columnsToExpand = [];
+                    if (isConferencia) {
+                         columnsToExpand = [1, 2, 3, 4, 5, 6]; 
+                    } else if (sheetName === "NOTA FISCAL") {
+                         columnsToExpand = [1, 2, 3, 4]; 
+                    }
+                    
+                    if (columnsToExpand.includes(i + 1)) { 
+                         cellClasses += ' expand-mode-cell'; 
+                    }
+
+                    html += `<td ${editAttributes} class="${cellClasses}">${cellValue}</td>`;
+                }
+                html += `</tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+
+        /**
+         * Gerencia a busca de dados e a renderização do conteúdo da aba.
+         */
+        async function loadTabContent(sheetName) {
+    const sheetToLoad = (sheetName === "CONTAGEM LOJA") ? currentContador : sheetName;
+    const data = await fetchSheetData(sheetToLoad);
+
+    let targetElementId = 'dynamic-table-content';
+    let headers = [];
+
+    if (sheetName === "NOTA FISCAL") {
+        headers = ["Descrição", "Quantidade", "Código de Barras", "Item"];
+        targetElementId = 'dynamic-table-content';
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            targetElement.innerHTML = renderTable(sheetName, data, headers);
+            updateNotaFiscalCache(data);
+        }
+
+    } else if (sheetName === "CONTAGEM LOJA") {
+        headers = ["Código de Barras", "Descrição"]; 
+        targetElementId = 'dynamic-table-content-contagem';
+        
+        setTimeout(() => {
+            const contadorButtons = document.querySelectorAll('.contador-button');
+            contadorButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    switchContador(this.getAttribute('data-contador'));
+                });
+            });
+        }, 100);
+        
+        if (!notaFiscalData) {
+            await loadNotaFiscalDataForCache();
+        }
+        
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
+            
+            updatePendingCount();
+            
+            startCacheChangeMonitor();
+            
+            setTimeout(() => {
+                requestAnimationFrame(focusNextEmptyContagemCell);
+            }, 100); 
+        }
+
+    } else if (sheetName === "CONFERENCIA") {
+        headers = ["Código de Barras", "Descrição do Produto", "Quantidade NF", "Contagem Loja", "Diferença", "Danos/Defeito"]; 
+        targetElementId = 'dynamic-table-content-conferencia';
+        
+        const targetElement = document.getElementById(targetElementId);
+        if (targetElement) {
+            // ✅ BUSCA AS INFORMAÇÕES DAS NOTAS FISCAIS (MESMO MÉTODO DO INDEX ORIGINAL)
+            const notasFiscaisInfo = await getNotasFiscaisInfo();
+            
+            // ✅ RENDERIZA APENAS AS INFORMAÇÕES DAS NOTAS FISCAIS ACIMA DA TABELA
+            const notasInfoHtml = renderNotasFiscaisInfo(notasFiscaisInfo);
+            targetElement.innerHTML = notasInfoHtml + renderTable(sheetName, data, headers);
+            
+            setTimeout(() => {
+                applyConferenciaStyles(headers.length);
+            }, 0);
+        }
+    }
+}
+
+/**
+ * ✅ FUNÇÃO: Busca informações das notas fiscais da aba NOTA FISCAL
+ */
+async function getNotasFiscaisInfo() {
+    try {
+        const notaFiscalData = await fetchSheetData("NOTA FISCAL");
+        if (!notaFiscalData || !Array.isArray(notaFiscalData)) {
+            return [];
+        }
+
+        const notasInfo = [];
+        
+        // Procura por linhas que contêm informações de notas fiscais
+        for (let row of notaFiscalData) {
+            if (row && Array.isArray(row) && row.length > 0) {
+                const firstCell = String(row[0]).trim();
+                
+                // Verifica se é uma linha de informação de nota fiscal
+                if (firstCell.includes('Data:') && firstCell.includes('Pedido:') && firstCell.includes('Chave:')) {
+                    // ✅ SUBSTITUI OS NOMES PARA O FORMATO SOLICITADO
+                    let formattedInfo = firstCell;
+                    
+                    // Substitui "NF:" por "Nfe:"
+                    formattedInfo = formattedInfo.replace(/NF:/g, 'Nfe:');
+                    
+                    // Substitui "Data:" por "Data de emissão:"
+                    formattedInfo = formattedInfo.replace(/Data:/g, 'Data de emissão:');
+                    
+                    // Substitui "Pedido:" por "Pedido Capta:"
+                    formattedInfo = formattedInfo.replace(/Pedido:/g, 'Pedido Capta:');
+                    
+                    // Mantém "Chave:" (já está correto)
+                    
+                    notasInfo.push(formattedInfo);
+                }
+            }
+        }
+        
+        console.log(`✅ Encontradas ${notasInfo.length} notas fiscais na aba NOTA FISCAL`);
+        return notasInfo;
+        
+    } catch (error) {
+                console.error("Erro ao buscar informações das notas fiscais:", error);
+        return [];
+    }
+}
+
+/**
+ * ✅ FUNÇÃO SIMPLES: Renderiza informações das notas fiscais (igual ao index original)
+ */
+function renderNotasFiscaisInfo(notasFiscaisInfo) {
+    if (!notasFiscaisInfo || notasFiscaisInfo.length === 0) {
+        return '<div class="mb-4 p-3 bg-gray-100 rounded-lg text-sm text-gray-600">Nenhuma nota fiscal encontrada</div>';
+    }
+
+    let html = `<div class="mb-4">`;
+    
+    // Mostra quantas notas fiscais tem - MESMA FONTE DA TABELA
+    html += `<div class="text-sm text-gray-600 mb-2 font-sans">Notas Fiscais na Conferencia: ${notasFiscaisInfo.length}</div>`;
+    
+    // Mostra cada nota fiscal - MESMA FONTE DA TABELA
+    notasFiscaisInfo.forEach((info, index) => {
+        // ✅ MODIFICA APENAS NA EXIBIÇÃO DO FRONT-END
+        let formattedInfo = info;
+        
+        // Substitui "NF:" por "Nfe:"
+        formattedInfo = formattedInfo.replace(/NF:/g, 'Nfe:');
+        
+        // Substitui "Data:" por "Data de emissão:"
+        formattedInfo = formattedInfo.replace(/Data:/g, 'Data de emissão:');
+        
+        // Substitui "Pedido:" por "Pedido Capta:"
+        formattedInfo = formattedInfo.replace(/Pedido:/g, 'Pedido Capta:');
+        
+        html += `<div class="p-2 border-b border-gray-200 text-sm font-sans bg-blue-200">${formattedInfo}</div>`;
+    });
+    
+    html += `</div>`;
+    return html;
+}
+        /**
+         * Carrega os dados da Nota Fiscal especificamente para o cache de busca
+         */
+        async function loadNotaFiscalDataForCache() {
+            try {
+                const data = await fetchSheetData("NOTA FISCAL");
+                updateNotaFiscalCache(data);
+            } catch (error) {
+                console.error("Erro ao carregar dados da Nota Fiscal para cache:", error);
+            }
+        }
+
+        /**
+         * Atualiza o cache local com os dados da Nota Fiscal para busca rápida
+         */
+        function updateNotaFiscalCache(data) {
+            if (!data || data.length === 0) {
+                notaFiscalData = [];
+                codigoBarrasIndex = {};
+                return;
+            }
+
+            notaFiscalData = data;
+            codigoBarrasIndex = {};
+
+            const dataRows = (data.length > 0 && data[0][0] === "Descrição") ? data.slice(1) : data;
+
+            dataRows.forEach(row => {
+                if (row.length >= 3) {
+                    const descricao = row[0] || '';
+                    const codigoBarras = String(row[2] || '').trim();
+                    
+                    if (codigoBarras && codigoBarras !== '') {
+                        codigoBarrasIndex[codigoBarras] = descricao;
+                    }
+                }
+            });
+
+            console.log(`Índice de códigos de barras atualizado: ${Object.keys(codigoBarrasIndex).length} itens`);
+        }
+
+        /**
+         * Busca a descrição correspondente a um código de barras no cache local
+         */
+        function buscarDescricaoPorCodigo(codigoBarras) {
+            const codigoLimpo = String(codigoBarras).trim();
+            return codigoBarrasIndex[codigoLimpo] || '';
+        }
+
+        /**
+         * Manipula o input em tempo real nas células da Contagem Loja
+         */
+        function handleContagemCellInput(element) {
+            const codigoBarras = element.textContent.trim();
+            lastInputTime = Date.now();
+            
+            if (codigoBarras && codigoBarras.length > 5) {
+                const descricao = buscarDescricaoPorCodigo(codigoBarras);
+                const row = element.closest('tr');
+                const descCell = row.querySelector('.descricao-cell');
+                
+                if (descricao) {
+                    if (descCell && descCell.textContent.trim() !== descricao) {
+                        descCell.textContent = descricao;
+                        row.classList.remove('bg-red-50');
+                        
+                        const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                        const cachedData = loadFromCache(cacheKey);
+                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
+                        cachedData[sheetRangeC] = descricao;
+                        saveToCache(cachedData, cacheKey);
+                    }
+                } else {
+                    if (descCell) {
+                        descCell.textContent = '';
+                    }
+                }
+            }
+        }
+
+        /**
+         * Alterna entre os contadores dentro da aba Contagem Loja
+         */
+        async function switchContador(contadorName) {
+            const cacheKeyCurrent = `${CACHE_KEY}_${currentContador}`;
+            const cachedDataCurrent = loadFromCache(cacheKeyCurrent);
+            const hasData = Object.keys(cachedDataCurrent).filter(key => key.startsWith('A')).length > 0;
+            
+            if (hasData) {
+                console.log(`🔄 Auto-save: Saindo do ${currentContador}, enviando dados...`);
+                showNotification(`Salvando dados do ${currentContador}...`, 'loading', 2000);
+                await processBatchUpdate();
+            }
+            
+            currentContador = contadorName;
+            
+            const contadorButtons = document.querySelectorAll('.contador-button');
+            contadorButtons.forEach(btn => {
+                if (btn.getAttribute('data-contador') === contadorName) {
+                    btn.classList.add('border-blue-600', 'text-blue-600');
+                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                } else {
+                    btn.classList.remove('border-blue-600', 'text-blue-600');
+                    btn.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                }
+            });
+
+            const targetElement = document.getElementById('dynamic-table-content-contagem');
+            if (targetElement) {
+                targetElement.innerHTML = `<div class="text-center py-10 text-gray-500">Carregando dados do ${contadorName}...</div>`;
+            }
+
+            const data = await fetchSheetData(contadorName);
+            const headers = ["Código de Barras", "Descrição"];
+            
+            if (targetElement) {
+                targetElement.innerHTML = renderContagemTableFixedRows(data, headers);
+                
+                updatePendingCount();
+                
+                startCacheChangeMonitor();
+                
+                setTimeout(() => {
+                    requestAnimationFrame(focusNextEmptyContagemCell);
+                }, 100);
+            }
+        }
+
+   
+        /**
+         * CORRIGIDO: Encontra a primeira célula vazia (após a última preenchida) na Contagem Loja, 
+         * foca nela e rola a tela.
+         */
+        function focusNextEmptyContagemCell() {
+            const cells = document.querySelectorAll('#contagem-table td[contenteditable="true"]');
+            
+            let cellToFocus = null; 
+            let lastFilledCellIndex = -1;
+            
+            for (let i = 0; i < cells.length; i++) {
+                const cell = cells[i];
+                const value = cell.textContent.trim();
+                
+                if (value !== '') {
+                    lastFilledCellIndex = i; 
+                }
+            }
+            
+            const targetCellIndex = lastFilledCellIndex + 1;
+            
+            if (targetCellIndex < cells.length) {
+                cellToFocus = cells[targetCellIndex];
+            } else if (cells.length > 0) {
+                 cellToFocus = cells[cells.length - 1];
+                 showNotification("Aviso: A lista de contagem pode estar cheia (3000 linhas). Foco na última célula preenchida.", 'warning', 5000);
+            }
+            
+            if (cellToFocus) {
+                cellToFocus.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                cellToFocus.focus();
+                
+                moveCursorToEnd(cellToFocus); 
+            }
+        }
+
+
+        /**
+         * Utilitário para mover o cursor de edição para o final do texto em uma célula contenteditable.
+         */
+        function moveCursorToEnd(element) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            
+            if (element.childNodes.length > 0) {
+                 const node = element.childNodes[0];
+                 if (node.nodeType === 3) {
+                     range.setStart(node, node.length);
+                 } else {
+                     range.setStart(element, 0);
+                 }
+            } else {
+                 range.setStart(element, 0);
+            }
+
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        // --- SISTEMA DE CACHE E ATUALIZAÇÃO EM LOTE ---
+
+        /**
+         * Carrega dados do cache local - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
+         */
+        function loadFromCache(cacheKey = CACHE_KEY) {
+            try {
+                const cached = localStorage.getItem(cacheKey);
+                if (!cached) return {};
+                
+                const cacheData = JSON.parse(cached);
+                
+                if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
+                    localStorage.removeItem(cacheKey);
+                    return {};
+                }
+                
+                return cacheData.data || {};
+            } catch (error) {
+                console.error('Erro ao carregar cache:', error);
+                return {};
+            }
+        }
+
+        /**
+         * Salva dados no cache local - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
+         */
+        function saveToCache(data, cacheKey = CACHE_KEY) {
+            try {
+                const cacheData = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            } catch (error) {
+                console.error('Erro ao salvar cache:', error);
+            }
+        }
+
+        /**
+         * Atualiza o contador de pendências na interface
+         */
+        function updatePendingCount() {
+            const countElement = document.getElementById('pending-count');
+            if (countElement) {
+                const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                const cachedData = loadFromCache(cacheKey);
+                
+                const colunaACount = Object.keys(cachedData).filter(key => key.startsWith('A')).length;
+                countElement.textContent = colunaACount;
+                
+                checkCacheChange();
+            }
+        }
+
+        /**
+         * Manipula a edição de células na Contagem Loja (com cache)
+         */
+        function handleContagemCellEdit(element, sheetRange, sheetName) {
+            const newValue = element.textContent.trim();
+            const originalValue = element.dataset.originalValue || '';
+
+            if (newValue === originalValue) {
+                return;
+            }
+
+            const cacheKey = `${CACHE_KEY}_${currentContador}`;
+            const cachedData = loadFromCache(cacheKey);
+            
+            if (newValue === '') {
+                delete cachedData[sheetRange];
+                const rowIndex = sheetRange.slice(1);
+                const sheetRangeC = `C${rowIndex}`;
+                delete cachedData[sheetRangeC];
+            } else {
+                cachedData[sheetRange] = newValue;
+                
+                const descricao = buscarDescricaoPorCodigo(newValue);
+                const row = element.closest('tr');
+                const descCell = row.querySelector('.descricao-cell');
+                
+                if (descricao) {
+                    if (descCell) {
+                        descCell.textContent = descricao;
+                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
+                        cachedData[sheetRangeC] = descricao;
+                    }
+                    row.classList.remove('bg-red-50');
+                } else {
+                    if (descCell) {
+                        descCell.textContent = '';
+                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
+                        delete cachedData[sheetRangeC];
+                    }
+                    row.classList.add('bg-red-50');
+                    
+                    const timeSinceInput = Date.now() - lastInputTime;
+                    if (timeSinceInput > INPUT_DEBOUNCE) {
+                        playErrorSoundIfAllowed();
+                    }
+                }
+            }
+            
+            saveToCache(cachedData, cacheKey);
+
+            element.dataset.originalValue = newValue;
+
+            if (newValue !== '') {
+                pendingUpdates.set(sheetRange, newValue);
+                editCount++;
+            } else {
+                pendingUpdates.delete(sheetRange);
+            }
+
+            updatePendingCount();
+
+            if (newValue !== '' && editCount >= BATCH_SIZE) {
+                processBatchUpdate();
+            }
+        }
+
+        /**
+         * ⚡⚡⚡ FUNÇÃO CORRIGIDA: Processa atualização em lote - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
+         */
+        async function processBatchUpdate() {
+            const cacheKey = `${CACHE_KEY}_${currentContador}`;
+            const cachedData = loadFromCache(cacheKey);
+            
+            if (Object.keys(cachedData).length === 0) {
+                showNotification('Nenhum dado no cache para enviar', 'info', 2000);
+                return;
+            }
+
+            showNotification(`Enviando ${Object.keys(cachedData).filter(key => key.startsWith('A')).length} células do ${currentContador}...`, 'loading');
+
+            try {
+                const updates = Object.entries(cachedData).map(([range, value]) => ({
+                    range: range,
+                    value: value
+                }));
+
+                const response = await fetch(`${BACKEND_URL}/api/batch-update-sheet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        sheet_name: currentContador,
+                        updates: updates 
+                    })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (response.ok && !result.error) {
+                    localStorage.removeItem(cacheKey);
+                    pendingUpdates.clear();
+                    editCount = 0;
+                    updatePendingCount();
+                    
+                    lastCacheCount = 0;
+                    
+                    showNotification(`${result.processed || updates.length} células salvas no ${currentContador}!`, 'success', 3000);
+                } else {
+                    showNotification(`Erro: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                hideNotification();
+                showNotification('Erro de rede', 'error');
+            }
+        }
+
+        /**
+         * ⚡⚡⚡ FUNÇÃO CORRIGIDA: Força o envio do lote pendente
+         */
+        function forceBatchUpdate() {
+            processBatchUpdate();
+        }
+
+        // --- SISTEMA DE SOM OTIMIZADO ---
+        
+        /**
+         * Toca som APENAS se não estiver no cooldown
+         */
+        function playErrorSoundIfAllowed() {
+            const now = Date.now();
+            const timeSinceLastSound = now - lastSoundTime;
+            
+            if (timeSinceLastSound < SOUND_COOLDOWN) {
+                console.log(`⏸️ Som ignorado: Cooldown ativo (${timeSinceLastSound}ms < ${SOUND_COOLDOWN}ms)`);
+                return false;
+            }
+            
+            soundCount++;
+            console.log(`🎵 TOCANDO SOM ${soundCount}`);
+            playErrorSound();
+            lastSoundTime = now;
+            return true;
+        }
+
+        /**
+         * Toca som de BIP usando Web Audio API
+         */
+        function playErrorSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 500;
+                oscillator.type = 'square';
+                gainNode.gain.value = 0.3; 
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+                
+            } catch (error) {
+                console.log('Erro Web Audio:', error);
+                try {
+                    console.log('\x07');
+                } catch (fallbackError) {
+                    console.log('❌ Nenhum método de áudio funcionou');
+                }
+            }
+        }
+
+        /**
+         * GERENCIA O COMPORTAMENTO DO ENTER NA CONTAGEM LOJA.
+         */
+        function handleContagemKeyPress(event, sheetRange, sheetName) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                
+                const element = event.target;
+                const codigoBarras = element.textContent.trim();
+                
+                if (codigoBarras && codigoBarras.length > 5) {
+                    const descricao = buscarDescricaoPorCodigo(codigoBarras);
+                    const row = element.closest('tr');
+                    const descCell = row.querySelector('.descricao-cell');
+                    
+                    if (descricao) {
+                        if (descCell) {
+                            descCell.textContent = descricao;
+                        }
+                        row.classList.remove('bg-red-50');
+                    } else {
+                        if (descCell) {
+                            descCell.textContent = '';
+                        }
+                        row.classList.add('bg-red-50');
+                        playErrorSoundIfAllowed();
+                    }
+                }
+                
+                handleContagemCellEdit(element, sheetRange, sheetName);
+
+                const currentRow = parseInt(sheetRange.slice(1));
+                const nextRow = currentRow + 1;
+                const nextRange = `A${nextRow}`;
+                const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+                
+                if (nextCell) {
+                    nextCell.focus();
+                    moveCursorToEnd(nextCell); 
+                    nextCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    showNotification("Fim da lista pré-renderizada. Pressione F5 para recarregar a página e continuar a contagem.", 'warning', 5000);
+                }
+            }
+        }
+
+        /**
+         * Manipula o evento keydown nas células da Contagem Loja
+         */
+        function handleContagemCellKeydown(event, element) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+        }
+
+        /**
+        /**
+ /**
+ * 🔄 ALTERNA ENTRE MODO SCROLL E MODO EXPANDIDO (ORIGINAL)
+ */
+function toggleScrollMode(sheetName) {
+    const tableID = sheetName === 'CONFERENCIA' ? 'conferencia-table' : 'notafiscal-table';
+    const buttonID = sheetName === 'CONFERENCIA' ? 'scroll-button-conferencia' : 'scroll-button-notafiscal';
+
+    const table = document.getElementById(tableID);
+    const button = document.getElementById(buttonID);
+
+    if (!table || !button) return;
+    
+    const isScrollModeActive = button.textContent === 'Modo Expandido';
+    
+    let columnsToTarget = [];
+    const scrollClassDesc = 'scroll-mode-cell';
+    const scrollClassNumeric = 'scroll-mode-cell-numeric';
+    const scrollClassCode = 'scroll-mode-cell-code'; 
+
+    if (sheetName === 'CONFERENCIA') {
+        columnsToTarget = [1, 2, 3, 4, 5, 6];
+    } else if (sheetName === 'NOTA FISCAL') {
+        columnsToTarget = [1, 2, 3, 4];
+    }
+
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        
+        cells.forEach(cell => {
+            
+            if (isScrollModeActive) {
+                cell.classList.remove(scrollClassDesc, scrollClassNumeric, scrollClassCode);
+                cell.classList.add('expand-mode-cell'); 
+            } else {
+                cell.classList.remove('expand-mode-cell');
+
+                if (sheetName === 'CONFERENCIA') {
+                    if (colIndex === 1) {
+                        cell.classList.add(scrollClassCode); 
+                    } 
+                    else if (colIndex === 2) {
+                        cell.classList.add(scrollClassDesc);
+                    }
+                    else if (colIndex >= 3 && colIndex <= 6) {
+                        cell.classList.add(scrollClassNumeric);
+                    }
+                    
+                } else if (sheetName === 'NOTA FISCAL') {
+                    if (colIndex === 2 || colIndex === 4) {
+                        cell.classList.add(scrollClassNumeric);
+                    } else if (colIndex === 3) {
+                        cell.classList.add(scrollClassCode); 
+                    } else { 
+                        cell.classList.add(scrollClassDesc);
+                    }
+                }
+            }
+        });
+    });
+
+    if (isScrollModeActive) {
+        button.textContent = 'Modo Scroll';
+        button.classList.remove('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
+        button.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+    } else {
+        button.textContent = 'Modo Expandido';
+        button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200', 'border-indigo-300');
+        button.classList.add('bg-gray-100', 'text-gray-800', 'hover:bg-gray-200', 'border-gray-300');
+    }
+}
+/**
+ * 📜 APLICAR MODO SCROLL
+ */
+function applyScrollMode(table, sheetName, columnsToTarget) {
+    const scrollClassDesc = 'scroll-mode-cell';
+    const scrollClassNumeric = 'scroll-mode-cell-numeric';
+    const scrollClassCode = 'scroll-mode-cell-code';
+
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        
+        cells.forEach(cell => {
+            if (sheetName === 'CONFERENCIA') {
+                if (colIndex === 1) {
+                    cell.classList.add(scrollClassCode);
+                } else if (colIndex === 2) {
+                    cell.classList.add(scrollClassDesc);
+                } else if (colIndex >= 3 && colIndex <= 6) {
+                    cell.classList.add(scrollClassNumeric);
+                }
+            } else if (sheetName === 'NOTA FISCAL') {
+                if (colIndex === 2 || colIndex === 4) {
+                    cell.classList.add(scrollClassNumeric);
+                } else if (colIndex === 3) {
+                    cell.classList.add(scrollClassCode);
+                } else {
+                    cell.classList.add(scrollClassDesc);
+                }
+            }
+        });
+    });
+}
+
+/**
+ * ✂️ APLICAR MODO TRUNCATE (RETICÊNCIAS)
+ */
+function applyTruncateMode(table, sheetName, columnsToTarget) {
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        cells.forEach(cell => {
+            cell.classList.add('truncate-mode-cell');
+        });
+    });
+}
+
+/**
+ * 📏 APLICAR MODO EXPANDIDO
+ */
+function applyExpandMode(table, columnsToTarget) {
+    columnsToTarget.forEach(colIndex => {
+        const cells = table.querySelectorAll(`th:nth-child(${colIndex}), td:nth-child(${colIndex})`);
+        cells.forEach(cell => {
+            cell.classList.add('expand-mode-cell');
+        });
+    });
+}
+      /**
+ * ✅ APLICA FORMATAÇÃO CONDICIONAL NA ABA CONFERENCIA - VERSÃO ATUALIZADA
+ * - Diferença negativa: Vermelho
+ * - Diferença positiva: Verde  
+ * - Danos/Defeito preenchido: Vermelho suave
+ */
+function applyConferenciaStyles(numCols) {
+    const rows = document.querySelectorAll('#conferencia-content .mock-table tbody tr');
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 6) return;
+
+        const diferencaCell = cells[4]; // 5ª coluna (Diferença)
+        const danosDefeitoCell = cells[5]; // 6ª coluna (Danos/Defeito)
+        
+        // ✅ REMOVER TODAS AS CLASSES DE COR ANTERIORES
+        row.classList.remove('bg-fee2e2', 'bg-green-100');
+        diferencaCell.classList.remove('bg-fee2e2', 'text-b91c1c', 'bg-green-100', 'text-green-700');
+        danosDefeitoCell.classList.remove('bg-red-100');
+
+        // ✅ 1. VERIFICAR DANOS/DEFEITO (PRIORIDADE MÁXIMA)
+        if (danosDefeitoCell && danosDefeitoCell.textContent.trim() !== '') {
+            danosDefeitoCell.classList.add('bg-red-100');
+        }
+
+        // ✅ 2. VERIFICAR DIFERENÇA (SE NÃO HOUVER DANOS/DEFEITO)
+        if (diferencaCell && danosDefeitoCell.textContent.trim() === '') {
+            let value = parseFloat(diferencaCell.textContent.replace(',', '.').trim());
+            
+            if (isNaN(value) || value === 0) {
+                // Nada a fazer - sem formatação
+            } else if (value < 0) {
+                // Diferença negativa - Vermelho
+                diferencaCell.classList.add('bg-fee2e2', 'text-b91c1c');
+            } else if (value > 0) {
+                // Diferença positiva - Verde
+                diferencaCell.classList.add('bg-green-100', 'text-green-700');
+            }
+        }
+    });
+}
+
+        // --- Funções de API e Utilitários ---
+        
+        async function fetchSheetData(sheetName) {
+            showNotification(`Buscando dados da aba '${sheetName}'...`, 'loading');
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/fetch-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sheet_name: sheetName })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || result.error) {
+                    hideNotification();
+                    showNotification(`Erro ao carregar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    return [];
+                }
+                
+                hideNotification();
+                return result.data || [];
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro na comunicação para buscar dados:", error);
+                showNotification(`Erro de Rede/CORS ao buscar dados para ${sheetName}.`, 'error');
+                return [];
+            }
+        }
+
+        async function importXMLData(xmlContent) {
+            if (!xmlContent || xmlContent.trim().length < 100) {
+                showNotification("Conteúdo XML vazio ou inválido para importação.", 'warning');
+                return;
+            }
+
+            showNotification("Enviando XML para o backend...", 'loading');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+                });
+
+                const result = await response.json();
+                hideNotification();
+
+                if (!response.ok || result.error) {
+                    showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+                } else {
+                    showNotification(result.message, 'success');
+                    switchTab("NOTA FISCAL");
+                }
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro de Rede:", error);
+                showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
+            }
+        }
+
+        /**
+         * ✅ FUNÇÃO CORRIGIDA: Importa XML por chave ignorando espaços E EXIBE INFORMAÇÕES
+         */
+        async function importarXMLPorChave() {
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (!chaveInput) {
+                showNotification("Campo de chave não encontrado.", "error");
+                return;
+            }
+            
+            let chaveAcesso = chaveInput.value.replace(/\s+/g, '');
+            
+            if (!chaveAcesso || chaveAcesso.length !== 44) {
+                showNotification(`Chave de acesso inválida. Deve conter 44 dígitos. (Atual: ${chaveAcesso.length} dígitos)`, "warning");
+                return;
+            }
+
+            // ✅ VERIFICAÇÃO DE DUPLICIDADE - Busca na planilha atual
+            const currentData = await fetchSheetData("NOTA FISCAL");
+            const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
+            
+            if (chaveExists) {
+                showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
+                return;
+            }
+
+            showNotification("Importando XML pela chave de acesso...", "loading");
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/importar-xml-chave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
+                    body: JSON.stringify({ chaveAcesso })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    hideNotification();
+                    showNotification(`Erro: ${result.error}`, "error");
+                    return;
+                }
+
+                hideNotification();
+                showNotification(result.message, "success", 5000);
+
+                chaveInput.value = '';
+                hidePasteModal();
+                
+                setTimeout(() => {
+                    switchTab("NOTA FISCAL");
+                }, 1000);
+
+            } catch (error) {
+                hideNotification();
+                console.error("Erro ao importar XML por chave:", error);
+                
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    showNotification("Erro de conexão com o servidor. Verifique sua internet.", "error");
+                } else {
+                    showNotification(`Erro: ${error.message}`, "error");
+                }
+            }
+        }
+
+        /**
+         * ✅ FUNÇÃO AUXILIAR: Verifica se a chave já existe nos dados atuais
+         */
+        function checkIfChaveExists(data, chaveAcesso) {
+            if (!data || !Array.isArray(data)) return false;
+            
+            // Converte a chave para o formato que aparece na planilha ("Chave: XXXXXXXXXXXXXXXXX")
+            const chaveFormatada = `Chave: ${chaveAcesso}`;
+            
+            // Procura em todas as linhas
+            for (let row of data) {
+                if (row && Array.isArray(row)) {
+                    for (let cell of row) {
+                        if (cell && String(cell).includes(chaveFormatada)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Função CRUCIAL: Envia o novo valor da célula editável para o Google Sheets.
+         */
+        async function handleCellEdit(element, sheetRange, sheetName) {
+            const newValue = element.textContent.trim();
+            const originalValue = element.dataset.originalValue; 
+
+            if (newValue === originalValue) {
+                return;
+            }
+
+            element.classList.add('saving-status'); 
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/update-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sheet_name: sheetName, range: sheetRange, value: newValue })
+                });
+
+                const result = await response.json();
+
+                element.classList.remove('saving-status');
+
+                if (!response.ok || result.error) {
+                    showNotification(`Erro ao salvar ${sheetRange}: ${result.error || 'Erro de servidor.'}`, 'error');
+                    element.textContent = originalValue; 
+                } else {
+                    element.dataset.originalValue = newValue;
+                    showNotification(`Célula ${sheetRange} atualizada com sucesso para '${newValue}'.`, 'success', 2000);
+                }
+
+            } catch (error) {
+                element.classList.remove('saving-status');
+                console.error("Erro na comunicação para atualizar célula:", error);
+                showNotification(`Erro de Rede ao tentar atualizar ${sheetRange}.`, 'error');
+                element.textContent = originalValue;
+            }
+        }
+
+        
+        /**
+         * CONFIGURAÇÃO ATUALIZADA: Inclui todos os contadores para limpeza
+         */
+        const sheetsConfig = [
+            { name: "NOTA FISCAL", range: 'A2:Z' },
+            { name: "CONTAGEM LOJA", range: 'A1:C3000' },
+            { name: "CONTADOR 2", range: 'A1:C3000' },
+            { name: "CONTADOR 3", range: 'A1:C3000' },
+            { name: "CONTADOR 4", range: 'A1:C3000' },
+            { name: "CONTADOR 5", range: 'A1:C3000' },
+            { name: "CONFERENCIA", range: 'F2:F' } 
+        ];
+
+        function confirmClearAllSheets() {
+            const confirmationMessage = "ATENÇÃO: Você tem certeza que deseja APAGAR TODOS os dados?\n\nIsso irá:\n- Limpar Nota Fiscal\n- Limpar TODOS os dados das colunas A e C de TODOS os contadores (1-5)\n- Limpar OBS da Conferência\n- Limpar caches locais\n\nEsta ação é IRREVERSÍVEL!";
+            
+            if (confirm(confirmationMessage)) {
+                clearMultipleSheets();
+            }
+        }
+
+        async function clearMultipleSheets() {
+            showNotification(`Iniciando limpeza completa...`, 'loading', 30000);
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const config of sheetsConfig) {
+                const result = await clearSheetData(config.name, config.range, false); 
+                if (result.success) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    showNotification(`Erro ao limpar a aba '${config.name}' (Range: ${config.range}).`, 'error', 4000);
+                }
+            }
+
+            const contadores = ['CONTAGEM LOJA', 'CONTADOR 2', 'CONTADOR 3', 'CONTADOR 4', 'CONTADOR 5'];
+            contadores.forEach(contador => {
+                const cacheKey = `${CACHE_KEY}_${contador}`;
+                localStorage.removeItem(cacheKey);
+            });
+
+            pendingUpdates.clear();
+            editCount = 0;
+            updatePendingCount();
+
+            lastCacheCount = 0;
+
+            hideNotification();
+
+            if (errorCount === 0) {
+                showNotification(`Limpeza completa concluída! ${successCount} ações realizadas. Caches locais limpos.`, 'success', 5000);
+            } else {
+                 showNotification(`Limpeza concluída com ${errorCount} erro(s). Caches locais foram limpos.`, 'warning', 8000);
+            }
+
+            const activeTab = document.querySelector('.tab-button.border-indigo-600').dataset.tab;
+            if (activeTab === "CONTAGEM LOJA") {
+                switchContador(currentContador);
+            } else {
+                switchTab(activeTab);
+            }
+        }
+
+        async function clearSheetData(sheetName, range, showNotificationOnSuccess = true) {
+            if (showNotificationOnSuccess) {
+                showNotification(`Limpando dados da aba '${sheetName}' (Range: ${range})...`, 'loading');
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/clear-sheet-data`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ sheet_name: sheetName, range: range })
+                });
+
+                const result = await response.json();
+                
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                }
+
+                if (!response.ok || result.error) {
+                    if (showNotificationOnSuccess) {
+                        showNotification(`Erro ao limpar '${sheetName}': ${result.error || 'Erro de servidor.'}`, 'error');
+                    }
+                    return { success: false, error: result.error || 'Erro de servidor.' };
+                } else {
+                    if (showNotificationOnSuccess) {
+                        showNotification(result.message, 'success');
+                    }
+                    return { success: true, message: result.message };
+                }
+
+            } catch (error) {
+                if (showNotificationOnSuccess) {
+                    hideNotification();
+                    showNotification(`Erro de Rede/CORS ao limpar dados.`, 'error');
+                }
+                console.error(`Erro de rede ao tentar limpar ${sheetName}:`, error);
+                return { success: false, error: 'Erro de rede/comunicação.' };
+            }
+        }
+
+
+        /**
+         * Extrai informações específicas do XML
+         */
+        function extrairInformacoesXML(xmlContent) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                
+                // Extrai Pedido Capta
+                const xPedElement = xmlDoc.getElementsByTagName('xPed')[0];
+                const pedidoCapta = xPedElement ? xPedElement.textContent : 'Não encontrado';
+                
+                // Extrai Número da Nota Fiscal
+                const nNFElement = xmlDoc.getElementsByTagName('nNF')[0];
+                const numeroNota = nNFElement ? nNFElement.textContent : 'Não encontrado';
+                
+                // Extrai Data de Emissão (apenas a parte da data)
+                const dhEmiElement = xmlDoc.getElementsByTagName('dhEmi')[0];
+                let dataEmissao = 'Não encontrada';
+                if (dhEmiElement) {
+                    const dataCompleta = dhEmiElement.textContent;
+                    // Extrai apenas a parte da data (YYYY-MM-DD)
+                    dataEmissao = dataCompleta.split('T')[0];
+                }
+                
+                // Extrai Chave de Acesso (opcional - para confirmar)
+                const chaveElement = xmlDoc.getElementsByTagName('chNFe')[0];
+                const chaveAcesso = chaveElement ? chaveElement.textContent : 'Não encontrada';
+                
+                return {
+                    pedidoCapta,
+                    numeroNota,
+                    dataEmissao,
+                    chaveAcesso
+                };
+            } catch (error) {
+                console.error('Erro ao extrair informações do XML:', error);
+                return {
+                    pedidoCapta: 'Erro na extração',
+                    numeroNota: 'Erro na extração',
+                    dataEmissao: 'Erro na extração',
+                    chaveAcesso: 'Erro na extração'
+                };
+            }
+        }
+
+        // --- Funções de Modal e Notificação (Tailwind) ---
+
+        function showPasteModal() {
+            document.getElementById('paste-modal').classList.remove('hidden');
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.focus();
+            }
+        }
+
+        function hidePasteModal() {
+            document.getElementById('paste-modal').classList.add('hidden');
+        }
+
+        function showNotification(message, type = 'success', duration = 5000) {
+            const container = document.getElementById('notifications-container');
+            if (!container) {
+                console.warn('Container de notificações não encontrado:', message);
+                return;
+            }
+            
+            hideNotification();
+            
+            let bgColor = 'bg-green-500';
+            let icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+
+            if (type === 'error') {
+                bgColor = 'bg-red-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'loading' || type === 'warning') {
+                bgColor = 'bg-yellow-500';
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${type === 'loading' ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" /></svg>`;
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `p-4 text-white ${bgColor} rounded-lg shadow-xl flex items-center space-x-3 transition-opacity duration-300 opacity-0`;
+            notification.innerHTML = `
+                <div>${icon}</div>
+                <p class="font-medium">${message}</p>
+            `;
+
+            if (type === 'loading') {
+                notification.id = 'loading-notification';
+            } else {
+                notification.id = 'temp-notification-' + Date.now();
+            }
+
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.remove('opacity-0'), 10); 
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                    setTimeout(() => {
+                        if (notification.parentNode === container) {
+                            container.removeChild(notification);
+                        }
+                    }, 300);
+                }, duration);
+            }
+        }
+
+        function hideNotification() {
+            const container = document.getElementById('notifications-container');
+            if (!container) return;
+            
+            const notifications = container.querySelectorAll('div');
+            notifications.forEach(notification => {
+                notification.classList.add('opacity-0');
+                setTimeout(() => {
+                    if (notification.parentNode === container) {
+                        container.removeChild(notification);
+                    }
+                }, 300);
+            });
+        }
+    
+        /**
+         * Alterna entre mostrar e ocultar a senha
+         */
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeSlashIcon = document.getElementById('eye-slash-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeSlashIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeSlashIcon.classList.add('hidden');
+            }
+        }
+
+       function handleFileUploadChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const xmlContent = e.target.result;
+                
+                // ✅ EXTRAI A CHAVE DO XML PARA VERIFICAÇÃO DE DUPLICIDADE
+                const chaveAcesso = extractChaveFromXML(xmlContent);
+                if (chaveAcesso) {
+                    const currentData = await fetchSheetData("NOTA FISCAL");
+                    const chaveExists = checkIfChaveExists(currentData, chaveAcesso);
+                    
+                    if (chaveExists) {
+                        showNotification("Esta nota fiscal já foi importada anteriormente!", "error");
+                        event.target.value = null;
+                        return;
+                    }
+                }
+
+                showNotification("Enviando XML para importação...", "loading");
+                
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/import-xml-data`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ xml_content: xmlContent, user_id: USER_ID })
+                    });
+
+                    const result = await response.json();
+                    hideNotification();
+
+                    if (!response.ok || result.error) {
+                        showNotification(`Falha na Importação: ${result.error || 'Erro desconhecido do servidor.'}`, 'error');
+                    } else {
+                        showNotification(result.message, 'success', 5000);
+                        switchTab("NOTA FISCAL");
+                    }
+
+                } catch (error) {
+                    hideNotification();
+                    console.error("Erro de Rede:", error);
+                    showNotification("Erro de Rede ao tentar conectar com o servidor.", 'error');
+                }
+            };
+            reader.onerror = function() {
+                showNotification("Erro ao ler o arquivo XML.", 'error');
+            };
+            reader.readAsText(file);
+            event.target.value = null;
+        }
+
+        /**
+         * ✅ FUNÇÃO AUXILIAR: Extrai chave de acesso do XML
+         */
+        function extractChaveFromXML(xmlContent) {
+            try {
+                const match = xmlContent.match(/<infNFe[^>]*Id="NFe([^"]+)"/);
+                return match ? match[1] : null;
+            } catch (error) {
+                console.error("Erro ao extrair chave do XML:", error);
+                return null;
+            }
+        }
+
+        // ✅ DETECTA SE ESTÁ NO APK ANDROID E CONFIGURA IMPRESSÃO
+        function setupAndroidPrint() {
+            // Verifica se está no APK Android (interface Android existe)
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                console.log("📱 APK Android detectado - Configurando impressão...");
+                
+                // Substitui a função de impressão padrão
+                const originalPrint = window.print;
+                
+                window.print = function() {
+                    if (isAndroidApp) {
+                        // Usa a função nativa do Android
+                        Android.printConferencia();
+                        return true;
+                    } else {
+                        // Fallback para impressão normal do navegador
+                        return originalPrint();
+                    }
+                };
+                
+                // Também intercepta cliques no botão "Imprimir Conferência"
+                document.addEventListener('click', function(e) {
+                    const target = e.target;
+                    if (target.textContent.includes('Imprimir Conferência') || 
+                        target.textContent.includes('imprimir conferência') ||
+                        target.onclick && target.onclick.toString().includes('printConferencia')) {
+                        
+                        if (isAndroidApp) {
+                            e.preventDefault();
+                            Android.printConferencia();
+                        }
+                    }
+                });
+                
+                console.log("✅ Impressão Android configurada com sucesso!");
+            }
+        }
+/**
+ * ✅ EXPORTAR EXCEL CORRIGIDO - Inclui informações das notas e exporta apenas o visível
+ */
+function exportarParaExcel() {
+    const isAndroidApp = typeof Android !== 'undefined';
+    
+    if (isAndroidApp) {
+        Android.exportarParaExcel();
+    } else {
+        exportarCSVNoNavegador();
+    }
+}
+
+/**
+ * ✅ EXPORTAR CSV CORRIGIDO - Inclui informações das notas e apenas linhas visíveis
+ */
+function exportarCSVNoNavegador() {
+    try {
+        const tabela = document.getElementById('conferencia-table');
+        if (!tabela) {
+            showNotification('Tabela de conferência não encontrada', 'error');
+            return;
+        }
+        
+        let csv = [];
+        
+        // ✅ ADICIONA BOM (Byte Order Mark) para UTF-8
+        const BOM = "\uFEFF";
+        
+        // ✅ 1. INCLUIR INFORMAÇÕES DAS NOTAS FISCAIS
+        const notasInfoElements = document.querySelectorAll('#dynamic-table-content-conferencia .mb-4 > div');
+        if (notasInfoElements.length > 0) {
+            // Adiciona título para as informações das notas
+            csv.push('"INFORMAÇÕES DAS NOTAS FISCAIS"');
+            
+            notasInfoElements.forEach(notaElement => {
+                let textoNota = notaElement.textContent.trim();
+                textoNota = textoNota.replace(/"/g, '""');
+                csv.push(`"${textoNota}"`);
+            });
+            
+            // Linha em branco para separar
+            csv.push('""');
+        }
+        
+        // ✅ 2. CABEÇALHOS DA TABELA
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
+            .map(th => {
+                let texto = th.textContent.trim();
+                texto = texto.replace(/"/g, '""');
+                return `"${texto}"`;
+            });
+        csv.push(cabecalhos.join(';'));
+        
+        // ✅ 3. DADOS DA TABELA - APENAS LINHAS VISÍVEIS
+        const linhas = tabela.querySelectorAll('tbody tr');
+        let linhasExportadas = 0;
+        
+        linhas.forEach(linha => {
+            // ✅ VERIFICA SE A LINHA ESTÁ VISÍVEL (não oculta pelo filtro)
+            const estilo = window.getComputedStyle(linha);
+            if (estilo.display === 'none') {
+                return; // Pula linhas ocultas
+            }
+            
+            const celulas = Array.from(linha.querySelectorAll('td'))
+                .map((td, index) => {
+                    let texto = td.textContent.trim();
+                    
+                    // ✅ CORREÇÃO: Para a primeira coluna (Código de Barras), formata como texto
+                    if (index === 0 && texto) {
+                        // Força o Excel a tratar como texto adicionando tab no início
+                        texto = "\t" + texto;
+                    }
+                    
+                    texto = texto.replace(/"/g, '""');
+                    texto = texto.replace(/\n/g, ' ');
+                    texto = texto.replace(/\r/g, ' ');
+                    return `"${texto}"`;
+                });
+            
+            if (celulas.length > 0 && celulas.some(cell => cell !== '""')) {
+                csv.push(celulas.join(';'));
+                linhasExportadas++;
+            }
+        });
+        
+        // ✅ 4. CRIA CSV COM BOM E ENCODING CORRETO
+        const csvContent = BOM + csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // ✅ 5. NOME DO ARQUIVO INCLUI DATA E STATUS DO FILTRO
+        const dataAtual = new Date().toISOString().split('T')[0];
+        const horaAtual = new Date().toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        }).replace(/:/g, '-');
+        
+        const filtroAtivo = document.getElementById('divergencias-button').textContent.includes('Mostrar todas');
+        const statusFiltro = filtroAtivo ? 'filtrado' : 'completo';
+        
+        a.download = `conferencia_nfe_${dataAtual}_${horaAtual}_${statusFiltro}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // ✅ 6. FEEDBACK DETALHADO
+        const totalLinhas = linhas.length;
+        const mensagem = `Arquivo Excel exportado com sucesso! 
+                         ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}
+                         ${notasInfoElements.length > 0 ? '+ informações das notas fiscais' : ''}`;
+        
+        showNotification(mensagem, 'success', 5000);
+        
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        showNotification('Erro ao exportar: ' + error.message, 'error');
+    }
+}
+        // ✅ FUNÇÃO COMPARTILHAR EM PDF (MELHORADA)
+        function compartilharEmPDF() {
+            const isAndroidApp = typeof Android !== 'undefined';
+            
+            if (isAndroidApp) {
+                Android.compartilharEmPDF();
+            } else {
+                // No navegador - instruções claras
+                showNotification('Para salvar como PDF: 1. Clique em Imprimir → 2. Escolha "Salvar como PDF" → 3. Selecione local', 'info', 5000);
+                window.print();
+            }
+        }
+
+        // --- Inicialização ---
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("🎯 DOM Carregado - Iniciando app...");
+            
+            // Configura listeners de teclado
+            const chaveInput = document.getElementById("chave-acesso-input");
+            if (chaveInput) {
+                chaveInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); 
+                        importarXMLPorChave(); 
+                    }
+                });
+            }
+
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            // Configura impressão Android
+            setTimeout(setupAndroidPrint, 1000);
+            
+            // Inicializa com delay para WebView
+            setTimeout(() => {
+                initializeApp();
+            }, 1000);
+        });
+
+        // ✅ TAMBÉM EXECUTA QUANDO A PÁGINA ESTIVER COMPLETAMENTE CARREGADA
+        window.addEventListener('load', function() {
+            setTimeout(setupAndroidPrint, 500);
+        });
+// =========================================================================
+// SISTEMA DE BUSCA UNIVERSAL
+// =========================================================================
+
+let currentSearchTerm = '';
+
+/**
+ * 👁️ MOSTRAR/OCULTAR BOTÃO X BASEADO NO CONTEÚDO
+ */
+function toggleClearButton() {
+    const searchInput = document.getElementById('global-search-input');
+    const clearButton = document.getElementById('clear-search-button');
+    
+    if (searchInput && clearButton) {
+        if (searchInput.value.trim() !== '') {
+            clearButton.classList.remove('hidden');
+        } else {
+            clearButton.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * 🗑️ LIMPAR BUSCA
+ */
+function clearSearch() {
+    document.getElementById('global-search-input').value = '';
+    currentSearchTerm = '';
+    
+    // Ocultar botão X
+    toggleClearButton();
+    
+    // Restaurar todas as linhas
+    const tables = document.querySelectorAll('.mock-table');
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.style.display = '';
+            row.classList.remove('bg-yellow-50');
+            
+            // Remover highlights
+            const cells = row.querySelectorAll('td');
+            cells.forEach(cell => {
+                cell.innerHTML = cell.textContent; // Remove marcações HTML
+            });
+        });
+    });
+    
+    showNotification('Busca limpa', 'info', 2000);
+}
+
+/**
+ * 🔍 BUSCA EM TODAS AS TABELAS COM CONTAGEM
+ */
+function performGlobalSearch() {
+    const searchTerm = document.getElementById('global-search-input').value.trim().toLowerCase();
+    currentSearchTerm = searchTerm;
+    
+    // Mostrar/ocultar botão X
+    toggleClearButton();
+    
+    if (!searchTerm) {
+        clearSearch();
+        return;
+    }
+
+    // Busca em todas as tabelas visíveis
+    const tables = document.querySelectorAll('.mock-table');
+    let totalResults = 0;
+    let foundInAnyTable = false;
+
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tbody tr');
+        let foundInThisTable = false;
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let rowContainsSearch = false;
+
+            cells.forEach(cell => {
+                const cellText = cell.textContent.toLowerCase();
+                if (cellText.includes(searchTerm)) {
+                    rowContainsSearch = true;
+                    // Destacar o texto encontrado
+                    highlightText(cell, searchTerm);
+                }
+            });
+
+            if (rowContainsSearch) {
+                row.style.display = '';
+                row.classList.add('bg-yellow-50');
+                foundInThisTable = true;
+                foundInAnyTable = true;
+                totalResults++; // ✅ CONTAR CADA LINHA ENCONTRADA
+            } else {
+                row.style.display = 'none';
+                row.classList.remove('bg-yellow-50');
+            }
+        });
+
+        // Mostrar mensagem se não encontrou nesta tabela
+        if (!foundInThisTable) {
+            console.log(`Não encontrado na tabela: ${table.id}`);
+        }
+    });
+
+    // Feedback visual COM CONTAGEM
+    if (foundInAnyTable) {
+        // ✅ MENSAGEM COM NÚMERO DE RESULTADOS
+        const resultText = totalResults === 1 ? '1 resultado encontrado' : `${totalResults} resultados encontrados`;
+        showNotification(`Busca: "${searchTerm}" - ${resultText}`, 'success', 3000);
+    } else {
+        showNotification(`Busca: "${searchTerm}" - Nenhum resultado encontrado`, 'warning', 3000);
+    }
+}
+/**
+ * 🎯 DESTACAR TEXTO ENCONTRADO
+ */
+function highlightText(element, searchTerm) {
+    const text = element.textContent;
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const highlighted = text.replace(regex, '<mark class="bg-yellow-300 px-1 rounded">$1</mark>');
+    element.innerHTML = highlighted;
+}
+
+/**
+ * 🎹 EVENT LISTENERS PARA BUSCA
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('global-search-input');
+    if (searchInput) {
+        // Busca ao digitar
+        searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.trim();
+            toggleClearButton(); // Mostrar/ocultar X
+            
+            if (term.length >= 3) {
+                performGlobalSearch();
+            } else if (term.length === 0) {
+                clearSearch();
+            }
+        });
+        
+        // Busca com Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performGlobalSearch();
+            }
+        });
+        
+        // Foco no campo - garantir que X aparece se tiver texto
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim() !== '') {
+                toggleClearButton();
+            }
+        });
+        
+        // Perda de foco - manter X visível se tiver texto
+        searchInput.addEventListener('blur', function() {
+            // Pequeno delay para permitir clique no X
+            setTimeout(() => {
+                if (this.value.trim() !== '') {
+                    toggleClearButton();
+                }
+            }, 200);
+        });
+    }
+    
+    // Event listener para o botão X (prevenir conflitos)
+    const clearButton = document.getElementById('clear-search-button');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearSearch();
+        });
+        
+        clearButton.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // Prevenir foco no input
+        });
+    }
+});
+		/**
+ * ✅ FILTRAR APENAS DIVERGÊNCIAS
+ * Mostra apenas linhas onde:
+ * - Coluna "Diferença" (5ª coluna) ≠ 0
+ * - OU Coluna "OBS" (6ª coluna) tem conteúdo
+ */
+function filtrarDivergencias() {
+    const table = document.getElementById('conferencia-table');
+    if (!table) {
+        showNotification('Tabela de conferência não encontrada', 'error');
+        return;
+    }
+
+    const rows = table.querySelectorAll('tbody tr');
+    const button = document.getElementById('divergencias-button');
+    const isFilterActive = button.textContent.includes('Mostrar todas');
+    
+    let divergenciasCount = 0;
+    let totalRows = 0;
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) {
+            totalRows++;
+            
+            const diferencaCell = cells[4]; // 5ª coluna (Diferença)
+            const obsCell = cells[5];       // 6ª coluna (OBS - agora danos defeito)
+            
+            let isDivergencia = false;
+            
+            // Verifica se é divergência (diferente de 0)
+            if (diferencaCell) {
+                const diferencaText = diferencaCell.textContent.trim();
+                const diferencaValue = parseFloat(diferencaText.replace(',', '.'));
+                if (!isNaN(diferencaValue) && diferencaValue !== 0) {
+                    isDivergencia = true;
+                }
+            }
+            
+            // Verifica se tem OBS preenchida
+            if (obsCell && obsCell.textContent.trim() !== '') {
+                isDivergencia = true;
+            }
+            
+            if (isFilterActive) {
+                // Modo "Mostrar todas" - mostra todas as linhas
+                row.style.display = '';
+                if (isDivergencia) {
+                    row.classList.add('bg-yellow-50');
+                    divergenciasCount++;
+                } else {
+                    row.classList.remove('bg-yellow-50');
+                }
+            } else {
+                // Modo "Mostrar apenas divergências" - filtra
+                if (isDivergencia) {
+                    row.style.display = '';
+                    row.classList.add('bg-yellow-50');
+                    divergenciasCount++;
+                } else {
+                    row.style.display = 'none';
+                    row.classList.remove('bg-yellow-50');
+                }
+            }
+        }
+    });
+    
+    // Alterna o texto do botão
+    if (isFilterActive) {
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span>Mostrar apenas divergências</span>
+        `;
+        button.classList.remove('bg-green-100', 'text-green-700', 'border-green-300', 'hover:bg-green-200');
+        button.classList.add('bg-red-100', 'text-red-700', 'border-red-300', 'hover:bg-red-200');
+        showNotification(`Mostrando todas as ${totalRows} linhas`, 'info', 3000);
+    } else {
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Mostrar todas as linhas</span>
+        `;
+        button.classList.remove('bg-red-100', 'text-red-700', 'border-red-300', 'hover:bg-red-200');
+        button.classList.add('bg-green-100', 'text-green-700', 'border-green-300', 'hover:bg-green-200');
+        showNotification(`Filtro aplicado: ${divergenciasCount} divergências de ${totalRows} linhas totais`, 'success', 4000);
+    }
+}
+
+/**
+ * ✅ ABRIR INTEGRAÇÃO DE NOTA
+ * Abre o link do sistema Microvix em nova aba
+ */
+function abrirIntegracaoNota() {
+    const url = 'https://linx.microvix.com.br/v4/home/index.asp';
+    window.open(url, '_blank');
+    showNotification('Abrindo sistema de integração...', 'info', 2000);
+}
+		
+    </script>
+</body>
+</html>
