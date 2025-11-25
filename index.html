@@ -1792,43 +1792,46 @@ function realizarMudancaParaConferencia(sheetName) {
                  cellClasses += ' expand-mode-cell'; 
             }
 
-            // ✅ ADICIONAR BOTÃO ✓ NA COLUNA "AJUSTAR" (índice 5)
-            if (isConferencia && i === 5) { // Coluna "Corrigir"
-                const diferencaValue = adjustedRow[4] !== undefined ? parseFloat(String(adjustedRow[4]).replace(',', '.')) : 0;
-                const quantidadeNF = adjustedRow[2] !== undefined ? parseFloat(String(adjustedRow[2]).replace(',', '.')) : 0;
-                
-                if (!isNaN(diferencaValue) && diferencaValue !== 0 && !isNaN(quantidadeNF)) {
-                    // ✅ VERIFICAR SE JÁ ESTÁ IGUALADO
-                    const adjustments = loadConferenceAdjustments();
-                    const jaIgualado = adjustments[`E${sheetRowIndex}`] === "0";
-                    
-                    if (jaIgualado) {
-                        // ✅ MOSTRAR "OK" + SETA VOLTAR
-html += `<td class="text-center">
-    <div class="flex items-center justify-center gap-2">
-        <span class="text-green-600 font-medium text-sm">OK</span>
-        <button onclick="desfazerIgualar('${sheetRowIndex}')" 
-                class="text-gray-600 hover:text-gray-800 transition duration-150 text-lg"
-                title="Desfazer igualação">
-            ↶
-        </button>
-    </div>
-</td>`;
-                    } else {
-                        // ✅ MOSTRAR BOTÃO NORMAL
-                        html += `<td class="text-center">
-                            <button onclick="igualarContagem('${sheetRowIndex}', ${quantidadeNF})" 
-                                    class="w-8 h-8 bg-transparent text-gray-600 rounded-lg hover:bg-gray-100 transition duration-150 text-sm font-medium border border-transparent hover:border-gray-300 flex items-center justify-center mx-auto">
-                                ↺
-                            </button>
-                        </td>`;
-                    }
-                } else {
-                    html += `<td></td>`;
-                }
-            } 
+           // ✅ ADICIONAR BOTÃO ✓ NA COLUNA "AJUSTAR" (índice 5)
+if (isConferencia && i === 5) { // Coluna "Corrigir"
+    const diferencaValue = adjustedRow[4] !== undefined ? parseFloat(String(adjustedRow[4]).replace(',', '.')) : 0;
+    const quantidadeNF = adjustedRow[2] !== undefined ? parseFloat(String(adjustedRow[2]).replace(',', '.')) : 0;
+    
+    if (!isNaN(diferencaValue) && !isNaN(quantidadeNF)) {
+        // ✅ VERIFICAR SE FOI IGUALADO MANUALMENTE (MESMO QUE DIFERENÇA SEJA 0)
+        const adjustments = loadConferenceAdjustments();
+        const foiIgualadoManual = adjustments[`igualado_manual_${sheetRowIndex}`] === "true";
+        
+        if (foiIgualadoManual) {
+            // ✅ MOSTRAR "OK" + SETA VOLTAR (MESMO QUE DIFERENÇA SEJA 0)
+            html += `<td class="text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <span class="text-green-600 font-medium text-sm">OK</span>
+                    <button onclick="desfazerIgualar('${sheetRowIndex}')" 
+                            class="text-gray-600 hover:text-gray-800 transition duration-150 text-lg"
+                            title="Desfazer igualação">
+                        ↶
+                    </button>
+                </div>
+            </td>`;
+        } else if (diferencaValue !== 0 && quantidadeNF > 0) {
+            // ✅ MOSTRAR BOTÃO NORMAL (APENAS SE HOUVER DIFERENÇA E QUANTIDADE)
+            html += `<td class="text-center">
+                <button onclick="igualarContagem('${sheetRowIndex}', ${quantidadeNF})" 
+                        class="w-8 h-8 bg-transparent text-gray-600 rounded-lg hover:bg-gray-100 transition duration-150 text-sm font-medium border border-transparent hover:border-gray-300 flex items-center justify-center mx-auto"
+                        title="Igualar contagem">
+                    ↺
+                </button>
+            </td>`;
+        } else {
+            html += `<td></td>`;
+        }
+    } else {
+        html += `<td></td>`;
+    }
+}
             // ✅ COLUNA DANOS/DEFEITO - SEM BORDAS
-            else if (isConferencia && i === 6) { // Coluna "Danos/Defeito e Obs"
+            else if (isConferencia && i === 6) { // Coluna "Danos/Defeito e Obs"   ↺
                 html += `
                     <td class="relative">
                         <div class="flex items-center gap-1">
@@ -3255,7 +3258,7 @@ function applyConferenciaStyles(numCols) {
             }
         }
 
-       async function igualarContagem(rowIndex, quantidadeNF) {
+      async function igualarContagem(rowIndex, quantidadeNF) {
     try {
         showNotification(`Ajustando contagem localmente...`, 'loading');
         
@@ -3277,20 +3280,20 @@ function applyConferenciaStyles(numCols) {
         // Salva os ajustes para esta linha
         adjustments[`D${rowIndex}`] = quantidadeNF.toString();
         adjustments[`E${rowIndex}`] = "0";
+        // ✅ ADICIONAR FLAG DE IGUALAÇÃO MANUAL
+        adjustments[`igualado_manual_${rowIndex}`] = "true";
         
         saveConferenceAdjustments(adjustments);
         
         // ✅ ATUALIZA APENAS A VISUALIZAÇÃO NO FRONTEND
         updateFrontendDisplay(rowIndex, quantidadeNF, 0);
         
-        // ✅ TRANSFORMAR BOTÃO EM "OK" + X
+        // ✅ TRANSFORMAR BOTÃO EM "OK" + SETA
         transformarBotaoIgualado(rowIndex);
         
         hideNotification();
         showNotification('Contagem ajustada localmente!', 'success', 3000);
         
-        // ✅ NÃO CHAMA aplicarConferenciaStyles() AQUI - isso causa o problema
-        // Em vez disso, atualiza apenas as células específicas
         setTimeout(() => {
             updateSingleRowStyles(rowIndex);
         }, 100);
@@ -3303,9 +3306,6 @@ function applyConferenciaStyles(numCols) {
 }
 
 
-/**
- * ✅ DESFAZER IGUALAR - Restaura valores originais
- */
 function desfazerIgualar(rowIndex) {
     try {
         const adjustments = loadConferenceAdjustments();
@@ -3314,11 +3314,12 @@ function desfazerIgualar(rowIndex) {
         const diferencaOriginal = adjustments[`original_E${rowIndex}`] || '0';
         const contagemLojaOriginal = adjustments[`original_D${rowIndex}`] || '0';
         
-        // Remove os ajustes
+        // Remove os ajustes E O FLAG DE IGUALAÇÃO
         delete adjustments[`D${rowIndex}`];
         delete adjustments[`E${rowIndex}`];
         delete adjustments[`original_E${rowIndex}`];
         delete adjustments[`original_D${rowIndex}`];
+        delete adjustments[`igualado_manual_${rowIndex}`];
         
         saveConferenceAdjustments(adjustments);
         
@@ -3330,13 +3331,8 @@ function desfazerIgualar(rowIndex) {
             
             // Restaura valores nas células
             if (cells[3] && cells[4]) {
-                // Coluna D (Contagem Loja) volta para o valor original
                 cells[3].textContent = contagemLojaOriginal;
-                
-                // Coluna E (Diferença) volta para o valor original
                 cells[4].textContent = diferencaOriginal;
-                
-                // Reaplica estilos
                 aplicarConferenciaStyles(7);
             }
         }
