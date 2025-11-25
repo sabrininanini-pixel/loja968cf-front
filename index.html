@@ -3553,7 +3553,7 @@ async function exportarPDFIdentico() {
 
             const paginaEl = paginas[i];
             
-            // ✅ CRIAR CONTAINER TEMPORÁRIO PARA CADA PÁGINA
+            // ✅ CRIAR CONTAINER TEMPORÁRIO INVISÍVEL PARA CADA PÁGINA
             const container = document.createElement('div');
             container.style.cssText = `
                 position: fixed;
@@ -3561,9 +3561,12 @@ async function exportarPDFIdentico() {
                 left: 0;
                 width: ${pdfWidth - (margin * 2)}mm;
                 background: white;
-                z-index: 10000;
+                z-index: -1;
                 padding: ${margin}mm;
                 box-sizing: border-box;
+                opacity: 0.00001;
+                visibility: hidden;
+                pointer-events: none;
             `;
             container.appendChild(paginaEl);
             document.body.appendChild(container);
