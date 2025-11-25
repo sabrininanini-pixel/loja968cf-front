@@ -3401,36 +3401,31 @@ function abrirIntegracaoNota() {
 }
 
 
-	/**
- * ✅ EXPORTAR PDF - VERSÃO COM MULTIPLAS PÁGINAS
+/**
+ * ✅ EXPORTAR PDF - VERSÃO COM ESPAÇO OTIMIZADO
  */
 async function exportarPDFIdentico() {
-    console.log('🎯 Exportação PDF - Múltiplas páginas...');
+    console.log('🎯 Exportação PDF - Espaço otimizado...');
     
-    showNotification('Gerando PDF com múltiplas páginas...', 'loading', 5000);
+    showNotification('Gerando PDF com espaço otimizado...', 'loading', 5000);
     
     try {
-        // ✅ 1. CAPTURA O ELEMENTO ORIGINAL
         const originalEl = document.getElementById('conferencia-content');
         if (!originalEl) {
             showNotification('Conteúdo da conferência não encontrado', 'error');
             return;
         }
 
-        // ✅ 2. CLONAR E PREPARAR O ELEMENTO
         const el = originalEl.cloneNode(true);
-        
-        // ✅ 3. REMOVER ELEMENTOS DESNECESSÁRIOS
         el.querySelectorAll('button, .print-hidden, nav, header, .flex.border-b, .flex.flex-wrap, .tab-button, .opcao-danos-btn').forEach(btn => btn.remove());
         
-        // ✅ 4. PREPARAR COLUNA DANOS/DEFEITO
         const celulasDanos = el.querySelectorAll('#conferencia-table td:nth-child(7)');
         celulasDanos.forEach(celula => {
             const botao = celula.querySelector('.opcao-danos-btn');
             if (botao) botao.remove();
         });
 
-        // ✅ 5. ADICIONAR ESTILOS DE IMPRESSÃO TEMPORÁRIOS
+        // ✅ ESTILOS MAIS COMPACTOS
         const style = document.createElement('style');
         style.textContent = `
             .print-optimized {
@@ -3438,33 +3433,33 @@ async function exportarPDFIdentico() {
                 color: black !important;
                 font-family: Arial, sans-serif !important;
                 width: 1000px !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .print-optimized table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                font-size: 10pt !important;
+                font-size: 9pt !important; /* Reduzido */
+                margin: 0 !important;
             }
             .print-optimized th, .print-optimized td {
                 border: 1px solid #ccc !important;
-                padding: 6px !important;
+                padding: 3px 4px !important; /* Reduzido */
                 word-break: break-word !important;
+                line-height: 1.1 !important; /* Mais compacto */
             }
             .print-optimized th {
                 background: #f8f9fa !important;
                 font-weight: bold !important;
-            }
-            .page-break {
-                page-break-after: always !important;
-                break-after: page !important;
+                padding: 4px 4px !important; /* Compacto */
             }
         `;
         el.appendChild(style);
         el.classList.add('print-optimized');
 
-        // ✅ 6. DIVIDIR O CONTEÚDO EM PÁGINAS
-        const paginas = dividirEmPaginas(el);
+        // ✅ DIVIDIR EM PÁGINAS COM MAIS LINHAS
+        const paginas = dividirEmPaginasCompactas(el);
         
-        // ✅ 7. CRIAR PDF
         const pdf = new jspdf.jsPDF({
             orientation: 'portrait',
             unit: 'mm',
@@ -3473,17 +3468,16 @@ async function exportarPDFIdentico() {
 
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10; // margem de 10mm
+        const margin = 8; // ✅ REDUZIDO de 10mm para 8mm
 
-        // ✅ 8. PROCESSAR CADA PÁGINA
         for (let i = 0; i < paginas.length; i++) {
             if (i > 0) {
-                pdf.addPage(); // Adiciona nova página após a primeira
+                pdf.addPage();
             }
 
             const paginaEl = paginas[i];
             
-            // ✅ CRIAR CONTAINER TEMPORÁRIO PARA CADA PÁGINA
+            // ✅ CONTAINER MAIS COMPACTO
             const container = document.createElement('div');
             container.style.cssText = `
                 position: fixed;
@@ -3492,13 +3486,13 @@ async function exportarPDFIdentico() {
                 width: ${pdfWidth - (margin * 2)}mm;
                 background: white;
                 z-index: 10000;
-                padding: ${margin}mm;
+                padding: ${margin}mm ${margin}mm 5mm ${margin}mm; /* ✅ BOTTOM REDUZIDO */
                 box-sizing: border-box;
+                margin: 0;
             `;
             container.appendChild(paginaEl);
             document.body.appendChild(container);
 
-            // ✅ CAPTURAR PÁGINA
             const canvas = await html2canvas(container, {
                 scale: 2,
                 useCORS: true,
@@ -3511,27 +3505,25 @@ async function exportarPDFIdentico() {
                 scrollY: 0
             });
 
-            // ✅ REMOVER CONTAINER
             document.body.removeChild(container);
 
-            // ✅ CONVERTER PARA IMAGEM
             const imgData = canvas.toDataURL('image/jpeg', 0.9);
 
-            // ✅ CALCULAR DIMENSÕES PARA CABER NA PÁGINA
+            // ✅ DIMENSIONAMENTO MAIS APROVEITADO
             const imgWidth = pdfWidth - (margin * 2);
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            // ✅ ADICIONAR IMAGEM AO PDF
-            pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+            // ✅ POSICIONAMENTO OTIMIZADO (menos margem bottom)
+            const yPosition = Math.max(margin, (pdfHeight - imgHeight) / 2);
+            pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
 
             console.log(`📄 Página ${i + 1}/${paginas.length} processada`);
         }
 
-        // ✅ 9. SALVAR PDF
         const fileName = `conferencia_nfe_${getDataAtual()}.pdf`;
         pdf.save(fileName);
 
-        console.log('✅ PDF com múltiplas páginas gerado com sucesso!');
+        console.log('✅ PDF compacto gerado com sucesso!');
         showNotification(`PDF com ${paginas.length} páginas baixado!`, 'success', 4000);
 
     } catch (error) {
@@ -3541,9 +3533,9 @@ async function exportarPDFIdentico() {
 }
 
 /**
- * ✅ DIVIDIR CONTEÚDO EM PÁGINAS
+ * ✅ DIVISÃO COMPACTA - MAIS LINHAS POR PÁGINA
  */
-function dividirEmPaginas(elemento) {
+function dividirEmPaginasCompactas(elemento) {
     const paginas = [];
     const tabela = elemento.querySelector('#conferencia-table');
     
@@ -3552,45 +3544,40 @@ function dividirEmPaginas(elemento) {
         return paginas;
     }
 
-    // ✅ CLONAR CABEÇALHO E INFORMAÇÕES DAS NOTAS
     const cabecalho = elemento.cloneNode(true);
     cabecalho.querySelectorAll('#conferencia-table tbody tr').forEach(tr => tr.remove());
     
     const corpoTabela = tabela.querySelector('tbody');
     const linhas = Array.from(corpoTabela.querySelectorAll('tr'));
     
-    // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 25; // Ajuste conforme necessário
+    // ✅ MAIS LINHAS POR PÁGINA (35 em vez de 25)
+    const linhasPorPagina = 35;
     const totalPaginas = Math.ceil(linhas.length / linhasPorPagina);
 
-    console.log(`📊 Dividindo ${linhas.length} linhas em ${totalPaginas} páginas`);
+    console.log(`📊 Dividindo ${linhas.length} linhas em ${totalPaginas} páginas (${linhasPorPagina} linhas/página)`);
 
-    // ✅ CRIAR CADA PÁGINA
     for (let pagina = 0; pagina < totalPaginas; pagina++) {
         const inicio = pagina * linhasPorPagina;
         const fim = inicio + linhasPorPagina;
         const linhasPagina = linhas.slice(inicio, fim);
 
-        // ✅ CLONAR ESTRUTURA BASE
         const paginaEl = cabecalho.cloneNode(true);
         const tabelaPagina = paginaEl.querySelector('#conferencia-table');
         const corpoPagina = tabelaPagina.querySelector('tbody');
         
-        // ✅ LIMPAR E ADICIONAR LINHAS DA PÁGINA
         corpoPagina.innerHTML = '';
         linhasPagina.forEach(linha => {
             corpoPagina.appendChild(linha.cloneNode(true));
         });
 
-        // ✅ ADICIONAR RODAPÉ COM NUMERAÇÃO
+        // ✅ RODAPÉ MAIS COMPACTO
         const rodape = document.createElement('div');
         rodape.style.cssText = `
             text-align: center;
-            margin-top: 10px;
-            font-size: 9pt;
+            margin-top: 3px; /* ✅ REDUZIDO */
+            font-size: 8pt;  /* ✅ REDUZIDO */
             color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 5px;
+            padding-top: 2px; /* ✅ REDUZIDO */
         `;
         rodape.textContent = `Página ${pagina + 1} de ${totalPaginas}`;
         paginaEl.appendChild(rodape);
@@ -3601,59 +3588,6 @@ function dividirEmPaginas(elemento) {
     return paginas;
 }
 
-/**
- * ✅ FUNÇÃO ALTERNATIVA - DIVISÃO AUTOMÁTICA POR ALTURA
- */
-function dividirEmPaginasPorAltura(elemento) {
-    const paginas = [];
-    const clone = elemento.cloneNode(true);
-    
-    // ✅ CONFIGURAÇÕES
-    const alturaMaximaPagina = 1000; // pixels - ajuste conforme necessário
-    let alturaAtual = 0;
-    let paginaAtual = document.createElement('div');
-    let paginasCriadas = 0;
-
-    // ✅ ESTILOS DA PÁGINA
-    paginaAtual.style.cssText = `
-        width: 100%;
-        background: white;
-        page-break-inside: avoid;
-    `;
-
-    // ✅ PROCESSAR ELEMENTOS FILHOS
-    Array.from(clone.children).forEach(child => {
-        const alturaChild = child.offsetHeight || 100; // estimativa
-        
-        if (alturaAtual + alturaChild > alturaMaximaPagina && alturaAtual > 0) {
-            // ✅ NOVA PÁGINA
-            paginas.push(paginaAtual);
-            paginaAtual = document.createElement('div');
-            paginaAtual.style.cssText = `
-                width: 100%;
-                background: white;
-                page-break-inside: avoid;
-            `;
-            alturaAtual = 0;
-            paginasCriadas++;
-        }
-        
-        paginaAtual.appendChild(child.cloneNode(true));
-        alturaAtual += alturaChild;
-    });
-
-    // ✅ ADICIONAR ÚLTIMA PÁGINA
-    if (paginaAtual.children.length > 0) {
-        paginas.push(paginaAtual);
-    }
-
-    console.log(`📊 Criadas ${paginas.length} páginas por altura`);
-    return paginas;
-}
-
-/**
- * ✅ FUNÇÃO AUXILIAR - Data formatada
- */
 function getDataAtual() {
     const agora = new Date();
     return `${agora.getFullYear()}-${(agora.getMonth()+1).toString().padStart(2, '0')}-${agora.getDate().toString().padStart(2, '0')}_${agora.getHours().toString().padStart(2, '0')}-${agora.getMinutes().toString().padStart(2, '0')}`;
