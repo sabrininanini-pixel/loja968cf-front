@@ -3560,7 +3560,7 @@ function dividirEmPaginas(elemento) {
     const linhas = Array.from(corpoTabela.querySelectorAll('tr'));
     
     // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 35; // Ajuste conforme necessário
+    const linhasPorPagina = 25; // Ajuste conforme necessário
     const totalPaginas = Math.ceil(linhas.length / linhasPorPagina);
 
     console.log(`📊 Dividindo ${linhas.length} linhas em ${totalPaginas} páginas`);
