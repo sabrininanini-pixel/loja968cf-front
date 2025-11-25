@@ -3487,8 +3487,8 @@ function exportarParaExcel() {
     }
 }
 
-		/**
- * ✅ EXPORTAR CSV COM COMPARTILHAMENTO AUTOMÁTICO
+	/**
+ * ✅ EXPORTAR CSV COM COMPARTILHAMENTO APENAS NO MOBILE
  */
 async function exportarCSVNoNavegadorCompartilhar() {
     try {
@@ -3583,10 +3583,12 @@ async function exportarCSVNoNavegadorCompartilhar() {
         
         const fileName = `conferencia_nfe_${dataAtual}_${horaAtual}_${statusFiltro}.csv`;
         
-        // ✅ 6. VERIFICAR SE O NAVEGADOR SUPORTA COMPARTILHAMENTO
-        if (navigator.share && navigator.canShare) {
+        // ✅ 6. DETECTAR SE É MOBILE OU PC
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile && navigator.share && navigator.canShare) {
+            // ✅ MOBILE - TENTA COMPARTILHAR
             try {
-                // ✅ TENTA COMPARTILHAR DIRETAMENTE
                 const file = new File([blob], fileName, { type: 'text/csv' });
                 
                 if (navigator.canShare({ files: [file] })) {
@@ -3600,11 +3602,12 @@ async function exportarCSVNoNavegadorCompartilhar() {
                     return;
                 }
             } catch (shareError) {
-                console.log('Compartilhamento nativo não suportado, fazendo download...');
+                console.log('Compartilhamento falhou, fazendo download...');
+                // Fallback para download no mobile também
             }
         }
         
-        // ✅ 7. FALLBACK - DOWNLOAD NORMAL
+        // ✅ 7. PC OU FALLBACK - FAZ DOWNLOAD NORMAL
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -3614,11 +3617,17 @@ async function exportarCSVNoNavegadorCompartilhar() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        // ✅ 8. FEEDBACK DETALHADO
+        // ✅ 8. FEEDBACK DIFERENCIADO
         const totalLinhas = linhas.length;
-        const mensagem = `Arquivo Excel exportado com sucesso! 
-                         ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}
-                         ${notasInfoElements.length > 0 ? '+ informações das notas fiscais' : ''}`;
+        let mensagem = '';
+        
+        if (isMobile) {
+            mensagem = `Arquivo baixado! ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}`;
+        } else {
+            mensagem = `Arquivo Excel exportado com sucesso! 
+                       ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}
+                       ${notasInfoElements.length > 0 ? '+ informações das notas fiscais' : ''}`;
+        }
         
         showNotification(mensagem, 'success', 5000);
         
@@ -3627,7 +3636,6 @@ async function exportarCSVNoNavegadorCompartilhar() {
         showNotification('Erro ao exportar: ' + error.message, 'error');
     }
 }
-
 /**
  * ✅ EXPORTAR CSV CORRIGIDO - Inclui informações das notas e apenas linhas visíveis
  */
