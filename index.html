@@ -3457,7 +3457,7 @@ function dividirEmPaginas(elemento) {
     console.log(`📊 ${linhasVisiveis.length} linhas visíveis encontradas no DOM original`);
 
     // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 35; // Ajuste conforme necessário
+    const linhasPorPagina = 40; // Ajuste conforme necessário
     const totalPaginas = Math.ceil(linhasVisiveis.length / linhasPorPagina);
 
     // ✅ CRIAR CADA PÁGINA
@@ -3483,7 +3483,7 @@ function dividirEmPaginas(elemento) {
             text-align: center;
             margin-top: 10px;
             font-size: 9pt;
-            color: #666;
+            color: #655;
             border-top: 1px solid #ccc;
             padding-top: 5px;
         `;
@@ -3545,10 +3545,17 @@ async function exportarPDFIdentico() {
                 word-break: break-word !important;
 				vertical-align: middle !important;  // ✅ Centraliza verticalmente
             }
-            .print-optimized th {
+            .print-optimized tr {
+				vertical-align: middle !important;  // ✅ Centraliza verticalmente
+            }
+			 .print-optimized th {
                 background: #f8f9fa !important;
                 font-weight: bold !important;
             }
+			  .print-optimized td {
+			    line-height: 1.4 !important;  // Aumenta espaçamento interno
+       		    padding: 8px 7px !important;  // Aumenta padding vertical
+			}
             .page-break {
                 page-break-after: always !important;
                 break-after: page !important;
