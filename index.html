@@ -3402,7 +3402,78 @@ function abrirIntegracaoNota() {
 
 
 /**
- * ✅ EXPORTAR PDF - VERSÃO COM MULTIPLAS PÁGINAS
+ * ✅ DIVIDIR CONTEÚDO EM PÁGINAS - CONSIDERANDO FILTRO DE DIVERGÊNCIAS
+ */
+function dividirEmPaginas(elemento) {
+    const paginas = [];
+    const tabela = elemento.querySelector('#conferencia-table');
+    
+    if (!tabela) {
+        paginas.push(elemento);
+        return paginas;
+    }
+
+    // ✅ CLONAR CABEÇALHO E INFORMAÇÕES DAS NOTAS
+    const cabecalho = elemento.cloneNode(true);
+    cabecalho.querySelectorAll('#conferencia-table tbody tr').forEach(tr => tr.remove());
+    
+    const corpoTabela = tabela.querySelector('tbody');
+    
+    // ✅ PEGAR APENAS LINHAS VISÍVEIS (considerando filtro de divergências)
+    const linhas = Array.from(corpoTabela.querySelectorAll('tr')).filter(linha => {
+        const estilo = window.getComputedStyle(linha);
+        return estilo.display !== 'none' && 
+               estilo.visibility !== 'hidden' &&
+               linha.offsetHeight > 0;
+    });
+    
+    // ✅ SE NÃO HOUVER LINHAS VISÍVEIS, USA TODAS AS LINHAS (fallback)
+    const linhasVisiveis = linhas.length > 0 ? linhas : Array.from(corpoTabela.querySelectorAll('tr'));
+
+    console.log(`📊 Dividindo ${linhasVisiveis.length} linhas visíveis em páginas`);
+
+    // ✅ CONFIGURAÇÕES DE PÁGINA
+    const linhasPorPagina = 25; // Ajuste conforme necessário
+    const totalPaginas = Math.ceil(linhasVisiveis.length / linhasPorPagina);
+
+    // ✅ CRIAR CADA PÁGINA
+    for (let pagina = 0; pagina < totalPaginas; pagina++) {
+        const inicio = pagina * linhasPorPagina;
+        const fim = inicio + linhasPorPagina;
+        const linhasPagina = linhasVisiveis.slice(inicio, fim);
+
+        // ✅ CLONAR ESTRUTURA BASE
+        const paginaEl = cabecalho.cloneNode(true);
+        const tabelaPagina = paginaEl.querySelector('#conferencia-table');
+        const corpoPagina = tabelaPagina.querySelector('tbody');
+        
+        // ✅ LIMPAR E ADICIONAR LINHAS VISÍVEIS DA PÁGINA
+        corpoPagina.innerHTML = '';
+        linhasPagina.forEach(linha => {
+            corpoPagina.appendChild(linha.cloneNode(true));
+        });
+
+        // ✅ ADICIONAR RODAPÉ COM NUMERAÇÃO
+        const rodape = document.createElement('div');
+        rodape.style.cssText = `
+            text-align: center;
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 5px;
+        `;
+        rodape.textContent = `Página ${pagina + 1} de ${totalPaginas}`;
+        paginaEl.appendChild(rodape);
+
+        paginas.push(paginaEl);
+    }
+
+    return paginas;
+}
+
+/**
+ * ✅ EXPORTAR PDF - VERSÃO COM MULTIPLAS PÁGINAS (ATUALIZADA)
  */
 async function exportarPDFIdentico() {
     console.log('🎯 Exportação PDF - Múltiplas páginas...');
@@ -3410,14 +3481,14 @@ async function exportarPDFIdentico() {
     showNotification('Gerando PDF com múltiplas páginas...', 'loading', 5000);
     
     try {
-        // ✅ 1. CAPTURA O ELEMENTO ORIGINAL
+        // ✅ 1. CAPTURA O ELEMENTO ORIGINAL (COM FILTRO APLICADO)
         const originalEl = document.getElementById('conferencia-content');
         if (!originalEl) {
             showNotification('Conteúdo da conferência não encontrado', 'error');
             return;
         }
 
-        // ✅ 2. CLONAR E PREPARAR O ELEMENTO
+        // ✅ 2. CLONAR E PREPARAR O ELEMENTO (MANTENDO APENAS LINHAS VISÍVEIS)
         const el = originalEl.cloneNode(true);
         
         // ✅ 3. REMOVER ELEMENTOS DESNECESSÁRIOS
@@ -3461,7 +3532,7 @@ async function exportarPDFIdentico() {
         el.appendChild(style);
         el.classList.add('print-optimized');
 
-        // ✅ 6. DIVIDIR O CONTEÚDO EM PÁGINAS
+        // ✅ 6. DIVIDIR O CONTEÚDO EM PÁGINAS (APENAS LINHAS VISÍVEIS)
         const paginas = dividirEmPaginas(el);
         
         // ✅ 7. CRIAR PDF
@@ -3539,68 +3610,6 @@ async function exportarPDFIdentico() {
         showNotification('Erro ao gerar PDF: ' + error.message, 'error', 5000);
     }
 }
-
-/**
- * ✅ DIVIDIR CONTEÚDO EM PÁGINAS
- */
-function dividirEmPaginas(elemento) {
-    const paginas = [];
-    const tabela = elemento.querySelector('#conferencia-table');
-    
-    if (!tabela) {
-        paginas.push(elemento);
-        return paginas;
-    }
-
-    // ✅ CLONAR CABEÇALHO E INFORMAÇÕES DAS NOTAS
-    const cabecalho = elemento.cloneNode(true);
-    cabecalho.querySelectorAll('#conferencia-table tbody tr').forEach(tr => tr.remove());
-    
-    const corpoTabela = tabela.querySelector('tbody');
-    const linhas = Array.from(corpoTabela.querySelectorAll('tr'));
-    
-    // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 25; // Ajuste conforme necessário
-    const totalPaginas = Math.ceil(linhas.length / linhasPorPagina);
-
-    console.log(`📊 Dividindo ${linhas.length} linhas em ${totalPaginas} páginas`);
-
-    // ✅ CRIAR CADA PÁGINA
-    for (let pagina = 0; pagina < totalPaginas; pagina++) {
-        const inicio = pagina * linhasPorPagina;
-        const fim = inicio + linhasPorPagina;
-        const linhasPagina = linhas.slice(inicio, fim);
-
-        // ✅ CLONAR ESTRUTURA BASE
-        const paginaEl = cabecalho.cloneNode(true);
-        const tabelaPagina = paginaEl.querySelector('#conferencia-table');
-        const corpoPagina = tabelaPagina.querySelector('tbody');
-        
-        // ✅ LIMPAR E ADICIONAR LINHAS DA PÁGINA
-        corpoPagina.innerHTML = '';
-        linhasPagina.forEach(linha => {
-            corpoPagina.appendChild(linha.cloneNode(true));
-        });
-
-        // ✅ ADICIONAR RODAPÉ COM NUMERAÇÃO
-        const rodape = document.createElement('div');
-        rodape.style.cssText = `
-            text-align: center;
-            margin-top: 10px;
-            font-size: 9pt;
-            color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 5px;
-        `;
-        rodape.textContent = `Página ${pagina + 1} de ${totalPaginas}`;
-        paginaEl.appendChild(rodape);
-
-        paginas.push(paginaEl);
-    }
-
-    return paginas;
-}
-
 /**
  * ✅ FUNÇÃO ALTERNATIVA - DIVISÃO AUTOMÁTICA POR ALTURA
  */
