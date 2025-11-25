@@ -3425,6 +3425,30 @@ document.addEventListener('DOMContentLoaded', function() {
     inicializarSistemaDesktop();
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * ✅ DIVIDIR CONTEÚDO EM PÁGINAS - CONSIDERANDO FILTRO DE DIVERGÊNCIAS
  */
@@ -3457,7 +3481,7 @@ function dividirEmPaginas(elemento) {
     console.log(`📊 ${linhasVisiveis.length} linhas visíveis encontradas no DOM original`);
 
     // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 40; // Ajuste conforme necessário
+    const linhasPorPagina = 27; // Ajuste conforme necessário
     const totalPaginas = Math.ceil(linhasVisiveis.length / linhasPorPagina);
 
     // ✅ CRIAR CADA PÁGINA
@@ -3477,7 +3501,7 @@ function dividirEmPaginas(elemento) {
             corpoPagina.appendChild(linha.cloneNode(true));
         });
 
-        // ✅ ADICIONAR RODAPÉ COM NUMERAÇÃO
+        // ✅ ADICIONAR RODAPÉ COM NUMERAÇÃO - GLORIA A JESUS CRISTO
         const rodape = document.createElement('div');
         rodape.style.cssText = `
             text-align: center;
@@ -3545,17 +3569,10 @@ async function exportarPDFIdentico() {
                 word-break: break-word !important;
 				vertical-align: middle !important;  // ✅ Centraliza verticalmente
             }
-            .print-optimized tr {
-				vertical-align: middle !important;  // ✅ Centraliza verticalmente
-            }
-			 .print-optimized th {
+            .print-optimized th {
                 background: #f8f9fa !important;
                 font-weight: bold !important;
             }
-			  .print-optimized td {
-			    line-height: 1.4 !important;  // Aumenta espaçamento interno
-       		    padding: 8px 7px !important;  // Aumenta padding vertical
-			}
             .page-break {
                 page-break-after: always !important;
                 break-after: page !important;
@@ -3700,6 +3717,12 @@ function getDataAtual() {
     const agora = new Date();
     return `${agora.getFullYear()}-${(agora.getMonth()+1).toString().padStart(2, '0')}-${agora.getDate().toString().padStart(2, '0')}_${agora.getHours().toString().padStart(2, '0')}-${agora.getMinutes().toString().padStart(2, '0')}`;
 }
+
+
+
+
+
+		
     </script>
 </body>
 </html>
