@@ -3483,7 +3483,148 @@ function exportarParaExcel() {
     if (isAndroidApp) {
         Android.exportarParaExcel();
     } else {
-        exportarCSVNoNavegador();
+        exportarCSVNoNavegadorCompartilhar();
+    }
+}
+
+		/**
+ * ✅ EXPORTAR CSV COM COMPARTILHAMENTO AUTOMÁTICO
+ */
+async function exportarCSVNoNavegadorCompartilhar() {
+    try {
+        const tabela = document.getElementById('conferencia-table');
+        if (!tabela) {
+            showNotification('Tabela de conferência não encontrada', 'error');
+            return;
+        }
+        
+        let csv = [];
+        const BOM = "\uFEFF";
+        const adjustments = loadConferenceAdjustments();
+        
+        // ✅ 1. INCLUIR INFORMAÇÕES DAS NOTAS FISCAIS
+        const notasInfoElements = document.querySelectorAll('#dynamic-table-content-conferencia .mb-4 > div');
+        if (notasInfoElements.length > 0) {
+            csv.push('"INFORMAÇÕES DAS NOTAS FISCAIS"');
+            
+            notasInfoElements.forEach(notaElement => {
+                let textoNota = notaElement.textContent.trim();
+                textoNota = textoNota.replace(/"/g, '""');
+                csv.push(`"${textoNota}"`);
+            });
+            
+            csv.push('""');
+        }
+        
+        // ✅ 2. CABEÇALHOS DA TABELA
+        const cabecalhos = Array.from(tabela.querySelectorAll('thead th'))
+            .map(th => {
+                let texto = th.textContent.trim();
+                texto = texto.replace(/"/g, '""');
+                return `"${texto}"`;
+            });
+        csv.push(cabecalhos.join(';'));
+        
+        // ✅ 3. DADOS DA TABELA - APENAS LINHAS VISÍVEIS E COM AJUSTES APLICADOS
+        const linhas = tabela.querySelectorAll('tbody tr');
+        let linhasExportadas = 0;
+        
+        linhas.forEach(linha => {
+            const estilo = window.getComputedStyle(linha);
+            if (estilo.display === 'none') {
+                return;
+            }
+            
+            const rowIndex = linha.getAttribute('data-row-index');
+            const celulas = Array.from(linha.querySelectorAll('td'));
+            
+            const celulasExport = celulas.map((td, index) => {
+                let texto = td.textContent.trim();
+                
+                // ✅ APLICA AJUSTES DO CACHE PARA EXPORTAÇÃO
+                if (rowIndex && adjustments) {
+                    if (index === 3 && adjustments[`D${rowIndex}`] !== undefined) {
+                        texto = adjustments[`D${rowIndex}`];
+                    } else if (index === 4 && adjustments[`E${rowIndex}`] !== undefined) {
+                        texto = adjustments[`E${rowIndex}`];
+                    }
+                }
+                
+                // Formatação para Excel
+                if (index === 0 && texto) {
+                    texto = "\t" + texto;
+                }
+                
+                texto = texto.replace(/"/g, '""');
+                texto = texto.replace(/\n/g, ' ');
+                texto = texto.replace(/\r/g, ' ');
+                return `"${texto}"`;
+            });
+            
+            if (celulasExport.length > 0 && celulasExport.some(cell => cell !== '""')) {
+                csv.push(celulasExport.join(';'));
+                linhasExportadas++;
+            }
+        });
+        
+        // ✅ 4. CRIA CSV COM BOM E ENCODING CORRETO
+        const csvContent = BOM + csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        // ✅ 5. NOME DO ARQUIVO
+        const dataAtual = new Date().toISOString().split('T')[0];
+        const horaAtual = new Date().toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        }).replace(/:/g, '-');
+        
+        const filtroAtivo = document.getElementById('divergencias-button').textContent.includes('Mostrar todas');
+        const statusFiltro = filtroAtivo ? 'filtrado' : 'completo';
+        
+        const fileName = `conferencia_nfe_${dataAtual}_${horaAtual}_${statusFiltro}.csv`;
+        
+        // ✅ 6. VERIFICAR SE O NAVEGADOR SUPORTA COMPARTILHAMENTO
+        if (navigator.share && navigator.canShare) {
+            try {
+                // ✅ TENTA COMPARTILHAR DIRETAMENTE
+                const file = new File([blob], fileName, { type: 'text/csv' });
+                
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Conferência NFe',
+                        text: `Conferência de nota fiscal exportada - ${linhasExportadas} linhas`
+                    });
+                    
+                    showNotification('Arquivo compartilhado com sucesso!', 'success', 3000);
+                    return;
+                }
+            } catch (shareError) {
+                console.log('Compartilhamento nativo não suportado, fazendo download...');
+            }
+        }
+        
+        // ✅ 7. FALLBACK - DOWNLOAD NORMAL
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        // ✅ 8. FEEDBACK DETALHADO
+        const totalLinhas = linhas.length;
+        const mensagem = `Arquivo Excel exportado com sucesso! 
+                         ${linhasExportadas} de ${totalLinhas} linhas ${filtroAtivo ? '(filtradas)' : '(todas)'}
+                         ${notasInfoElements.length > 0 ? '+ informações das notas fiscais' : ''}`;
+        
+        showNotification(mensagem, 'success', 5000);
+        
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        showNotification('Erro ao exportar: ' + error.message, 'error');
     }
 }
 
