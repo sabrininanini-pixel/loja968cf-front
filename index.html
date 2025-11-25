@@ -3457,7 +3457,7 @@ function dividirEmPaginas(elemento) {
     console.log(`📊 ${linhasVisiveis.length} linhas visíveis encontradas no DOM original`);
 
     // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 25; // Ajuste conforme necessário
+    const linhasPorPagina = 35; // Ajuste conforme necessário
     const totalPaginas = Math.ceil(linhasVisiveis.length / linhasPorPagina);
 
     // ✅ CRIAR CADA PÁGINA
@@ -3543,6 +3543,7 @@ async function exportarPDFIdentico() {
                 border: 1px solid #ccc !important;
                 padding: 6px !important;
                 word-break: break-word !important;
+				vertical-align: middle !important;  // ✅ Centraliza verticalmente
             }
             .print-optimized th {
                 background: #f8f9fa !important;
