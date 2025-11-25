@@ -3442,7 +3442,7 @@ async function exportarPDFIdentico() {
             .print-optimized table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                font-size: 10pt !important;
+                font-size: 12pt !important;
             }
             .print-optimized th, .print-optimized td {
                 border: 1px solid #ccc !important;
@@ -3560,7 +3560,7 @@ function dividirEmPaginas(elemento) {
     const linhas = Array.from(corpoTabela.querySelectorAll('tr'));
     
     // ✅ CONFIGURAÇÕES DE PÁGINA
-    const linhasPorPagina = 40; // Ajuste conforme necessário
+    const linhasPorPagina = 35; // Ajuste conforme necessário
     const totalPaginas = Math.ceil(linhas.length / linhasPorPagina);
 
     console.log(`📊 Dividindo ${linhas.length} linhas em ${totalPaginas} páginas`);
