@@ -2,6 +2,8 @@
 <html lang="pt-br">
 <head>
 
+	
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 	
@@ -4168,9 +4170,7 @@ function gerarPDFParaEmail() {
  * ✅ ABRIR OPÇÕES DE EMAIL
  */
 function abrirOpcoesEmail() {
-    // Primeiro gera o PDF DA CONFERÊNCIA
-    gerarPDFParaEmail();
-    
+   
     // Mostra modal com opções
     const modalHtml = `
         <div class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
@@ -5030,6 +5030,171 @@ document.addEventListener('DOMContentLoaded', function() {
     inicializarSistemaDesktop();
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * ✅ GERAR PDF E RETORNAR BASE64 (PARA APK)
+ */
+async function gerarPDFParaAPK() {
+    try {
+        console.log('🎯 Gerando PDF para APK...');
+        
+        // ✅ USA A MESMA LÓGICA COMPLETA do exportarPDFIdentico()
+        const originalEl = document.getElementById('conferencia-content');
+        if (!originalEl) {
+            return JSON.stringify({ error: 'Conteúdo não encontrado' });
+        }
+
+        const el = originalEl.cloneNode(true);
+        
+        // Remove elementos desnecessários
+        el.querySelectorAll('button, .print-hidden, nav, header, .flex.border-b, .flex.flex-wrap, .tab-button, .opcao-danos-btn').forEach(btn => btn.remove());
+        
+        // Prepara coluna Danos/Defeito
+        const celulasDanos = el.querySelectorAll('#conferencia-table td:nth-child(7)');
+        celulasDanos.forEach(celula => {
+            const botao = celula.querySelector('.opcao-danos-btn');
+            if (botao) botao.remove();
+        });
+
+        // Adiciona estilos de impressão
+        const style = document.createElement('style');
+        style.textContent = `
+            .print-optimized {
+                background: white !important;
+                color: black !important;
+                font-family: Arial, sans-serif !important;
+                width: 1150px !important;
+            }
+            .print-optimized table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 12pt !important;
+            }
+            .print-optimized th, .print-optimized td {
+                border: 1px solid #ccc !important;
+                padding: 6px !important;
+                word-break: break-word !important;
+                vertical-align: middle !important;
+            }
+            .print-optimized th {
+                background: #f8f9fa !important;
+                font-weight: bold !important;
+            }
+        `;
+        el.appendChild(style);
+        el.classList.add('print-optimized');
+
+        // Divide em páginas
+        const paginas = dividirEmPaginas(el);
+        
+        // Cria PDF
+        const pdf = new jspdf.jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 3;
+
+        // Processa cada página
+        for (let i = 0; i < paginas.length; i++) {
+            if (i > 0) {
+                pdf.addPage();
+            }
+
+            const paginaEl = paginas[i];
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: ${pdfWidth - (margin * 2)}mm;
+                background: white;
+                z-index: -100;
+                padding: ${margin}mm;
+                box-sizing: border-box;
+            `;
+            container.appendChild(paginaEl);
+            document.body.appendChild(container);
+
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: container.scrollWidth,
+                height: container.scrollHeight,
+                windowWidth: container.scrollWidth,
+                scrollX: 0,
+                scrollY: 0
+            });
+
+            document.body.removeChild(container);
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.9);
+            const imgWidth = pdfWidth - (margin * 2);
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+        }
+
+        // ✅ RETORNA PDF COMO BASE64 (DIFERENÇA CHAVE)
+        const pdfBlob = pdf.output('blob');
+        const reader = new FileReader();
+        
+        return new Promise((resolve) => {
+            reader.onload = function() {
+                const base64 = reader.result.split(',')[1];
+                resolve(JSON.stringify({
+                    success: true,
+                    pdfBase64: base64,
+                    fileName: `conferencia_nfe_${getDataAtual()}.pdf`,
+                    paginas: paginas.length
+                }));
+            };
+            reader.readAsDataURL(pdfBlob);
+        });
+
+    } catch (error) {
+        return JSON.stringify({
+            error: true,
+            message: error.message
+        });
+    }
+}
+
+
+
+	
+
+
+
+		
 /**
  * ✅ DIVIDIR CONTEÚDO EM PÁGINAS - CONSIDERANDO FILTRO DE DIVERGÊNCIAS
  */
@@ -5101,146 +5266,194 @@ function dividirEmPaginas(elemento) {
     return paginas;
 }
 
-/**
- * ✅ EXPORTAR PDF - VERSÃO COM MULTIPLAS PÁGINAS (ATUALIZADA)
- */
+
+		
 async function exportarPDFIdentico() {
-    console.log('🎯 Exportação PDF - Múltiplas páginas...');
+    const isAndroidApp = typeof Android !== 'undefined';
     
-    showNotification('Gerando PDF com múltiplas páginas...', 'loading', 5000);
-    
-    try {
-        // ✅ 1. CAPTURA O ELEMENTO ORIGINAL (COM FILTRO APLICADO)
-        const originalEl = document.getElementById('conferencia-content');
-        if (!originalEl) {
-            showNotification('Conteúdo da conferência não encontrado', 'error');
-            return;
-        }
-
-        // ✅ 2. CLONAR E PREPARAR O ELEMENTO (MANTENDO APENAS LINHAS VISÍVEIS)
-        const el = originalEl.cloneNode(true);
+    if (isAndroidApp) {
+        // ✅ NO APK - USA A FUNÇÃO COMPLETA
+        showNotification('Gerando PDF...', 'loading');
         
-        // ✅ 3. REMOVER ELEMENTOS DESNECESSÁRIOS
-        el.querySelectorAll('button, .print-hidden, nav, header, .flex.border-b, .flex.flex-wrap, .tab-button, .opcao-danos-btn').forEach(btn => btn.remove());
-        
-        // ✅ 4. PREPARAR COLUNA DANOS/DEFEITO
-        const celulasDanos = el.querySelectorAll('#conferencia-table td:nth-child(7)');
-        celulasDanos.forEach(celula => {
-            const botao = celula.querySelector('.opcao-danos-btn');
-            if (botao) botao.remove();
-        });
+        try {
+            const resultado = await gerarPDFParaAPK();
 
-        // ✅ 5. ADICIONAR ESTILOS DE IMPRESSÃO TEMPORÁRIOS
-        const style = document.createElement('style');
-        style.textContent = `
-            .print-optimized {
-                background: white !important;
-                color: black !important;
-                font-family: Arial, sans-serif !important;
-                width: 1150px !important;
-            }
-            .print-optimized table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                font-size: 12pt !important;
-            }
-            .print-optimized th, .print-optimized td {
-                border: 1px solid #ccc !important;
-                padding: 6px !important;
-                word-break: break-word !important;
-				vertical-align: middle !important;  // ✅ Centraliza verticalmente
-            }
-            .print-optimized th {
-                background: #f8f9fa !important;
-                font-weight: bold !important;
-            }
-            .page-break {
-                page-break-after: always !important;
-                break-after: page !important;
-            }
-        `;
-        el.appendChild(style);
-        el.classList.add('print-optimized');
-
-        // ✅ 6. DIVIDIR O CONTEÚDO EM PÁGINAS (APENAS LINHAS VISÍVEIS)
-        const paginas = dividirEmPaginas(el);
-        
-        // ✅ 7. CRIAR PDF
-        const pdf = new jspdf.jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const margin = 3; // margem de 10mm
-
-        // ✅ 8. PROCESSAR CADA PÁGINA
-        for (let i = 0; i < paginas.length; i++) {
-            if (i > 0) {
-                pdf.addPage(); // Adiciona nova página após a primeira
-            }
-
-            const paginaEl = paginas[i];
+            // ✅ TIMEOUT DE SEGURANÇA - fecha após 15 segundos mesmo se não voltar
+            setTimeout(() => {
+                hideNotification();
+            }, 15000);
             
-            // ✅ CRIAR CONTAINER TEMPORÁRIO PARA CADA PÁGINA
-            const container = document.createElement('div');
-            container.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: ${pdfWidth - (margin * 2)}mm;
-                background: white;
-                z-index: -100;
-                padding: ${margin}mm;
-                box-sizing: border-box;
-            `;
-            container.appendChild(paginaEl);
-            document.body.appendChild(container);
+            Android.receberPDFGerado(resultado); // 👈 ENVIA PARA APK
+        } catch (error) {
+            showNotification('Erro no APK: ' + error.message, 'error');
+        }
+    } else {
+        // ✅ NAVEGADOR NORMAL - COMPORTAMENTO ORIGINAL
+        console.log('🎯 Exportação PDF - Múltiplas páginas...');
+        
+        showNotification('Gerando PDF com múltiplas páginas...', 'loading', 5000);
+        
+        try {
+            // ✅ 1. CAPTURA O ELEMENTO ORIGINAL (COM FILTRO APLICADO)
+            const originalEl = document.getElementById('conferencia-content');
+            if (!originalEl) {
+                showNotification('Conteúdo da conferência não encontrado', 'error');
+                return;
+            }
 
-            // ✅ CAPTURAR PÁGINA
-            const canvas = await html2canvas(container, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                width: container.scrollWidth,
-                height: container.scrollHeight,
-                windowWidth: container.scrollWidth,
-                scrollX: 0,
-                scrollY: 0
+            // ✅ 2. CLONAR E PREPARAR O ELEMENTO (MANTENDO APENAS LINHAS VISÍVEIS)
+            const el = originalEl.cloneNode(true);
+            
+            // ✅ 3. REMOVER ELEMENTOS DESNECESSÁRIOS
+            el.querySelectorAll('button, .print-hidden, nav, header, .flex.border-b, .flex.flex-wrap, .tab-button, .opcao-danos-btn').forEach(btn => btn.remove());
+            
+            // ✅ 4. PREPARAR COLUNA DANOS/DEFEITO
+            const celulasDanos = el.querySelectorAll('#conferencia-table td:nth-child(7)');
+            celulasDanos.forEach(celula => {
+                const botao = celula.querySelector('.opcao-danos-btn');
+                if (botao) botao.remove();
             });
 
-            // ✅ REMOVER CONTAINER
-            document.body.removeChild(container);
+            // ✅ 5. ADICIONAR ESTILOS DE IMPRESSÃO TEMPORÁRIOS
+            const style = document.createElement('style');
+            style.textContent = `
+                .print-optimized {
+                    background: white !important;
+                    color: black !important;
+                    font-family: Arial, sans-serif !important;
+                    width: 1150px !important;
+                }
+                .print-optimized table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                    font-size: 12pt !important;
+                }
+                .print-optimized th, .print-optimized td {
+                    border: 1px solid #ccc !important;
+                    padding: 6px !important;
+                    word-break: break-word !important;
+                    vertical-align: middle !important;
+                }
+                .print-optimized th {
+                    background: #f8f9fa !important;
+                    font-weight: bold !important;
+                }
+                .page-break {
+                    page-break-after: always !important;
+                    break-after: page !important;
+                }
+            `;
+            el.appendChild(style);
+            el.classList.add('print-optimized');
 
-            // ✅ CONVERTER PARA IMAGEM
-            const imgData = canvas.toDataURL('image/jpeg', 0.9);
+            // ✅ 6. DIVIDIR O CONTEÚDO EM PÁGINAS (APENAS LINHAS VISÍVEIS)
+            const paginas = dividirEmPaginas(el);
+            
+            // ✅ 7. CRIAR PDF
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
 
-            // ✅ CALCULAR DIMENSÕES PARA CABER NA PÁGINA
-            const imgWidth = pdfWidth - (margin * 2);
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const margin = 3;
 
-            // ✅ ADICIONAR IMAGEM AO PDF
-            pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+            // ✅ 8. PROCESSAR CADA PÁGINA
+            for (let i = 0; i < paginas.length; i++) {
+                if (i > 0) {
+                    pdf.addPage();
+                }
 
-            console.log(`📄 Página ${i + 1}/${paginas.length} processada`);
+                const paginaEl = paginas[i];
+                
+                // ✅ CRIAR CONTAINER TEMPORÁRIO PARA CADA PÁGINA
+                const container = document.createElement('div');
+                container.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: ${pdfWidth - (margin * 2)}mm;
+                    background: white;
+                    z-index: -100;
+                    padding: ${margin}mm;
+                    box-sizing: border-box;
+                `;
+                container.appendChild(paginaEl);
+                document.body.appendChild(container);
+
+                // ✅ CAPTURAR PÁGINA
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: container.scrollWidth,
+                    height: container.scrollHeight,
+                    windowWidth: container.scrollWidth,
+                    scrollX: 0,
+                    scrollY: 0
+                });
+
+                // ✅ REMOVER CONTAINER
+                document.body.removeChild(container);
+
+                // ✅ CONVERTER PARA IMAGEM
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+
+                // ✅ CALCULAR DIMENSÕES PARA CABER NA PÁGINA
+                const imgWidth = pdfWidth - (margin * 2);
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                // ✅ ADICIONAR IMAGEM AO PDF
+                pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+
+                console.log(`📄 Página ${i + 1}/${paginas.length} processada`);
+            }
+
+            // ✅ 9. SALVAR PDF - COM COMPARTILHAMENTO NO MOBILE (PARTE MODIFICADA)
+            const fileName = `conferencia_nfe_${getDataAtual()}.pdf`;
+            const pdfBlob = pdf.output('blob');
+            
+            // ✅ VERIFICA SE É MOBILE E PODE COMPARTILHAR
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile && navigator.share && navigator.canShare) {
+                try {
+                    // ✅ TENTA COMPARTILHAR NO MOBILE
+                    const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                    
+                    if (navigator.canShare({ files: [file] })) {
+                        hideNotification();
+                        showNotification('Abrindo compartilhamento...', 'success', 2000);
+                        
+                        await navigator.share({
+                            files: [file],
+                            title: 'Conferência NFe',
+                            text: `PDF da conferência - ${paginas.length} páginas`
+                        });
+                        
+                        console.log('✅ PDF compartilhado no mobile!');
+                        return; // ✅ COMPARTILHOU COM SUCESSO - PARA AQUI
+                    }
+                } catch (shareError) {
+                    console.log('Compartilhamento falhou, fazendo download...', shareError);
+                    // Continua para o download normal abaixo
+                }
+            }
+            
+            // ✅ FALLBACK - DOWNLOAD NORMAL (DESKTOP OU MOBILE SEM SHARE)
+            pdf.save(fileName);
+            console.log('✅ PDF com múltiplas páginas gerado com sucesso!');
+            showNotification(`PDF com ${paginas.length} páginas baixado!`, 'success', 4000);
+
+        } catch (error) {
+            console.error('❌ Erro na exportação de PDF:', error);
+            showNotification('Erro ao gerar PDF: ' + error.message, 'error', 5000);
         }
-
-        // ✅ 9. SALVAR PDF
-        const fileName = `conferencia_nfe_${getDataAtual()}.pdf`;
-        pdf.save(fileName);
-
-        console.log('✅ PDF com múltiplas páginas gerado com sucesso!');
-        showNotification(`PDF com ${paginas.length} páginas baixado!`, 'success', 4000);
-
-    } catch (error) {
-        console.error('❌ Erro na exportação de PDF:', error);
-        showNotification('Erro ao gerar PDF: ' + error.message, 'error', 5000);
     }
 }
-
 /**
  * ✅ FUNÇÃO ALTERNATIVA - DIVISÃO AUTOMÁTICA POR ALTURA
  */
