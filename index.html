@@ -663,6 +663,140 @@ body {
     font-weight: bold;
     line-height: 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+		   
+
+
+
+/* ✅ ESTILOS PARA A CÉLULA DE QUANTIDADE */
+.quantidade-cell {
+    text-align: center !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+    width: 70px !important;
+}
+
+/* Garantir que o conteúdo editável também fique centralizado */
+.quantidade-cell[contenteditable="true"]:focus {
+    text-align: center !important; 
+    outline: none;
+    box-shadow: 0 0 0 2px #c7d2fe;
+}
+
+/* Para modo de impressão */
+@media print {
+    .quantidade-cell {
+        width: 40px !important;
+        text-align: center !important;
+    }
+}
+
+
+
+
+/* ✅ ESTILOS ESPECÍFICOS PARA COLUNA DE QUANTIDADE */
+#contagem-table th:nth-child(2) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+
+#contagem-table td:nth-child(2) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+
+/* Apenas para botões com classe botao-quantidade */
+#contagem-table button.botao-quantidade {
+    background: transparent !important;
+    border: none !important;
+    transition: all 0.2s ease !important;
+}
+
+#contagem-table button.botao-quantidade:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    transform: scale(1.1);
+}
+
+#contagem-table button.botao-quantidade:active {
+    transform: scale(0.95);
+}
+
+/* Estilos específicos para botões grandes */
+.botao-grande {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+/* Estilos específicos para botões pequenos */
+.botao-pequeno {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 12px !important;
+}
+
+/* Campo de número */
+.quantidade-valor {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    color: #374151 !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    width: 35% !important;
+    text-align: center !important;
+    padding: 8px 4px !important;
+}
+
+.quantidade-valor:focus {
+    border-color: #6366f1 !important;
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+}
+
+
+
+
+
+
+
+
+		   if (!cachedData[sheetRangeB] || cachedData[sheetRangeB] === '') {
+    cachedData[sheetRangeB] = "1";
+    
+    const row = element.closest('tr');
+    const valorElement = row.querySelector('.quantidade-valor');
+    if (valorElement) {
+        valorElement.textContent = "1";
+        valorElement.dataset.originalValue = "1";
+    }
+}
+
+
+
+
+
+
+
+
+		   
 		   
 		   
 </style>
@@ -1178,7 +1312,7 @@ body {
 
         // --- Sistema de Cache para Contagem Loja ---
         const CACHE_KEY = 'contagem_loja_cache';
-        const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 horas em milissegundos
+        const CACHE_DURATION = 72 * 60 * 60 * 1000; // 3 horas em milissegundos mudei para 72 horas
         const BATCH_SIZE = 50; // Atualizar a cada 50 células
         let pendingUpdates = new Map(); // Armazena as atualizações pendentes
         let editCount = 0; // Contador de edições
@@ -1363,13 +1497,15 @@ body {
     const currentTab = document.querySelector('.tab-button.border-indigo-600')?.dataset.tab;
     
     if (currentTab === 'CONTAGEM LOJA' && sheetName === 'CONFERENCIA') {
-        console.log('🔄 Saindo da Contagem Loja para Conferência - Salvando dados...');
-        
-        const cacheKey = `${CACHE_KEY}_${currentContador}`;
-        const cachedData = loadFromCache(cacheKey);
-        const hasData = Object.keys(cachedData).filter(key => key.startsWith('A')).length > 0;
-        
-        if (hasData) {
+    console.log('🔄 Saindo da Contagem Loja para Conferência - Salvando dados...');
+    
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    // ✅ VERIFICA QUALQUER DADO NO CACHE (não apenas coluna A)
+    const hasData = Object.keys(cachedData).length > 0;
+    
+    if (hasData) {
             // ✅ SALVA OS DADOS E SÓ DEPOIS MUDA PARA CONFERÊNCIA
             showNotification('Salvando dados da contagem antes de carregar conferência...', 'loading');
             
@@ -1644,67 +1780,124 @@ function realizarMudancaParaConferencia(sheetName) {
          * Renderiza a tabela da Contagem Loja com 3000 linhas pré-renderizadas e 2 colunas.
          */
         function renderContagemTableFixedRows(data, headers) {
-            const fixedRows = 3000;
-            
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
-            
-            const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
-                                 ? data.slice(1) 
-                                 : data;
+    const fixedRows = 3000;
+    
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    const existingData = (data.length > 0 && headers.length > 0 && String(data[0][0]) === headers[0]) 
+                         ? data.slice(1) 
+                         : data;
 
-            let html = `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
-                    <table class="mock-table w-full text-sm" id="contagem-table">
-                        <thead class="bg-gray-50 sticky top-0">
-                            <tr>
-                                <th>Código de Barras</th>
-                                <th>Descrição</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+    let html = `
+        <div class="rounded-lg border border-gray-200 overflow-x-auto shadow-sm">
+            <table class="mock-table w-full text-sm" id="contagem-table">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th class="text-left">Código de Barras</th>
+                        <th class="text-center" style="width: 140px;">Qtd</th> <!-- ✅ DOBRO DA LARGURA -->
+                        <th class="text-left">Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
-            for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
-                const sheetRowIndex = rowIndex + 1;
-                const sheetRangeA = `A${sheetRowIndex}`;
-                const sheetRangeC = `C${sheetRowIndex}`;
-                
-                let cellValueA = '';
-                if (cachedData[sheetRangeA] !== undefined) {
-                    cellValueA = cachedData[sheetRangeA];
-                } else if (existingData[rowIndex] && existingData[rowIndex][0] !== undefined) {
-                    cellValueA = existingData[rowIndex][0];
-                }
-                
-                let cellValueC = '';
-                if (cachedData[sheetRangeC] !== undefined) {
-                    cellValueC = cachedData[sheetRangeC];
-                } else if (existingData[rowIndex] && existingData[rowIndex][2] !== undefined) {
-                    cellValueC = existingData[rowIndex][2];
-                }
-
-                const hasRedBackground = cellValueA !== '' && cellValueC === '';
-                const rowClass = hasRedBackground ? 'bg-red-50' : '';
-
-                const editAttributes = `contenteditable="true"
-                                        onblur="handleContagemCellEdit(this, '${sheetRangeA}', '${currentContador}')"
-                                        onkeydown="handleContagemKeyPress(event, '${sheetRangeA}', '${currentContador}')"
-                                        oninput="handleContagemCellInput(this)"
-                                        data-original-value="${cellValueA}"
-                                        data-sheet-range="${sheetRangeA}"`;
-                
-                const cellClassesA = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition expand-mode-cell';
-
-                html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">
-                            <td ${editAttributes} onkeydown="handleContagemCellKeydown(event, this)" class="${cellClassesA}">${cellValueA}</td>
-                            <td class="expand-mode-cell descricao-cell" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
-                         </tr>`;
-            }
-
-            html += `</tbody></table></div>`;
-            return html;
+    for (let rowIndex = 0; rowIndex < fixedRows; rowIndex++) {
+        const sheetRowIndex = rowIndex + 1;
+        const sheetRangeA = `A${sheetRowIndex}`;
+        const sheetRangeB = `B${sheetRowIndex}`;
+        const sheetRangeC = `C${sheetRowIndex}`;
+        
+        let cellValueA = '';
+        if (cachedData[sheetRangeA] !== undefined) {
+            cellValueA = cachedData[sheetRangeA];
+        } else if (existingData[rowIndex] && existingData[rowIndex][0] !== undefined) {
+            cellValueA = existingData[rowIndex][0];
+        }
+        
+        let cellValueB = '';
+        if (cachedData[sheetRangeB] !== undefined) {
+            cellValueB = cachedData[sheetRangeB];
+        } else if (existingData[rowIndex] && existingData[rowIndex][1] !== undefined) {
+            cellValueB = existingData[rowIndex][1];
+        }
+        
+        let cellValueC = '';
+        if (cachedData[sheetRangeC] !== undefined) {
+            cellValueC = cachedData[sheetRangeC];
+        } else if (existingData[rowIndex] && existingData[rowIndex][2] !== undefined) {
+            cellValueC = existingData[rowIndex][2];
         }
 
+        const hasRedBackground = cellValueA !== '' && cellValueC === '';
+        const rowClass = hasRedBackground ? 'bg-red-50' : '';
+
+        const editAttributesA = `contenteditable="true"
+                                onblur="handleContagemCellEdit(this, '${sheetRangeA}', '${currentContador}')"
+                                onkeydown="handleContagemKeyPress(event, '${sheetRangeA}', '${currentContador}')"
+                                oninput="handleContagemCellInput(this)"
+                                data-original-value="${cellValueA}"
+                                data-sheet-range="${sheetRangeA}"`;
+        
+        const cellClassesA = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition expand-mode-cell text-left';
+        const cellClassesB = 'cursor-text hover:bg-indigo-50/50 focus:bg-indigo-100 border border-transparent focus:border-indigo-400 transition text-center quantidade-cell';
+
+        // ✅ CÉLULA DE QUANTIDADE CONDICIONAL
+        let quantidadeHtml = '';
+        if (cellValueA === '') {
+            // ✅ CÉLULA VAZIA - mostra apenas placeholder
+            quantidadeHtml = `<td class="${cellClassesB}" style="width: 140px;">
+                                <div class="flex items-center justify-center w-full text-gray-400" style="height: 40px;">
+                                    -
+                                </div>
+                             </td>`;
+        } else {
+            // ✅ CÉLULA COM CÓDIGO - mostra botões e número
+            const valorQuantidade = cellValueB || '1';
+            quantidadeHtml = `<td class="${cellClassesB}" style="width: 140px;">
+                                <div class="flex items-center justify-center gap-1 w-full" style="height: 40px;">
+     <button onclick="alterarQuantidade(this, -10, '${sheetRangeB}', '${currentContador}')" 
+        class="botao-quantidade botao-grande"
+        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #6b7280; border-radius: 4px; transition: all 0.15s; background: transparent; border: none; cursor: pointer; font-size: 14px; font-weight: 500;"
+        title="Diminuir 10">
+    -
+</button>
+    <button onclick="alterarQuantidade(this, -1, '${sheetRangeB}', '${currentContador}')" 
+            class="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition duration-150 text-sm"
+            title="Diminuir 1">
+        −
+    </button>
+    <div class="quantidade-valor" contenteditable="true"
+         onblur="atualizarQuantidadeManual(this, '${sheetRangeB}', '${currentContador}')"
+         onkeydown="validarTeclaQuantidade(event)"
+         style="width: 5px; text-align: center; margin: 0 1px; padding: 0;"
+         data-sheet-range="${sheetRangeB}"
+         data-original-value="${valorQuantidade}">
+         ${valorQuantidade}
+    </div>
+    <button onclick="alterarQuantidade(this, 1, '${sheetRangeB}', '${currentContador}')" 
+            class="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition duration-150 text-sm"
+            title="Aumentar 1">
+        +
+    </button>
+<button onclick="alterarQuantidade(this, 10, '${sheetRangeB}', '${currentContador}')" 
+        class="botao-quantidade botao-grande"
+        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #6b7280; border-radius: 4px; transition: all 0.15s; background: transparent; border: none; cursor: pointer; font-size: 14px; font-weight: 500;"
+        title="Aumentar 10">
+    +
+</button>
+                             </td>`;
+        }
+
+        html += `<tr data-row-index="${sheetRowIndex}" class="${rowClass}">
+                    <td ${editAttributesA} onkeydown="handleContagemCellKeydown(event, this)" class="${cellClassesA}">${cellValueA}</td>
+                    ${quantidadeHtml}
+                    <td class="expand-mode-cell descricao-cell text-left" data-row-index="${sheetRowIndex}" data-sheet-range="${sheetRangeC}">${cellValueC}</td>
+                 </tr>`;
+    }
+
+    html += `</tbody></table></div>`;
+    return html;
+}
 
     function renderTable(sheetName, data, headers) {
     
@@ -1889,7 +2082,7 @@ if (isConferencia && i === 5) { // Coluna "Corrigir"
         }
 
     } else if (sheetName === "CONTAGEM LOJA") {
-        headers = ["Código de Barras", "Descrição"]; 
+         headers = ["Código de Barras", "Qtd", "Descrição"]; // ✅ ADICIONADO "Qtd"
         targetElementId = 'dynamic-table-content-contagem';
         
         setTimeout(() => {
@@ -2268,67 +2461,90 @@ function renderNotasFiscaisInfo(notasFiscaisInfo) {
          * Manipula a edição de células na Contagem Loja (com cache)
          */
         function handleContagemCellEdit(element, sheetRange, sheetName) {
-            const newValue = element.textContent.trim();
-            const originalValue = element.dataset.originalValue || '';
+    const newValue = element.textContent.trim();
+    const originalValue = element.dataset.originalValue || '';
 
-            if (newValue === originalValue) {
-                return;
-            }
+    if (newValue === originalValue) {
+        return;
+    }
 
-            const cacheKey = `${CACHE_KEY}_${currentContador}`;
-            const cachedData = loadFromCache(cacheKey);
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    const rowIndex = sheetRange.slice(1);
+    const sheetRangeB = `B${rowIndex}`;
+    const row = element.closest('tr');
+    
+    if (newValue === '') {
+        delete cachedData[sheetRange];
+        const sheetRangeC = `C${rowIndex}`;
+        delete cachedData[sheetRangeC];
+        delete cachedData[sheetRangeB];
+        
+        // ✅ LIMPAR CÉLULA DE QUANTIDADE
+        limparCelulaQuantidade(row);
+        
+        const descCell = row.querySelector('.descricao-cell');
+        if (descCell) {
+            descCell.textContent = '';
+        }
+        
+    } else {
+        cachedData[sheetRange] = newValue;
+        
+        // ✅ SE NÃO TEM QUANTIDADE, CRIA COM "1"
+        if (!cachedData[sheetRangeB] || cachedData[sheetRangeB] === '') {
+            cachedData[sheetRangeB] = "1";
             
-            if (newValue === '') {
-                delete cachedData[sheetRange];
-                const rowIndex = sheetRange.slice(1);
-                const sheetRangeC = `C${rowIndex}`;
+            // ✅ ATUALIZAR VISUALMENTE COM BOTÕES
+            atualizarCelulaQuantidade(row, sheetRangeB, "1");
+        } else {
+            // ✅ SE JÁ TEM QUANTIDADE, APENAS ATUALIZA O VALOR
+            const valorExistente = cachedData[sheetRangeB];
+            atualizarCelulaQuantidade(row, sheetRangeB, valorExistente);
+        }
+        
+        const descricao = buscarDescricaoPorCodigo(newValue);
+        const descCell = row.querySelector('.descricao-cell');
+        
+        if (descricao) {
+            if (descCell) {
+                descCell.textContent = descricao;
+                const sheetRangeC = descCell.getAttribute('data-sheet-range');
+                cachedData[sheetRangeC] = descricao;
+            }
+            row.classList.remove('bg-red-50');
+        } else {
+            if (descCell) {
+                descCell.textContent = '';
+                const sheetRangeC = descCell.getAttribute('data-sheet-range');
                 delete cachedData[sheetRangeC];
-            } else {
-                cachedData[sheetRange] = newValue;
-                
-                const descricao = buscarDescricaoPorCodigo(newValue);
-                const row = element.closest('tr');
-                const descCell = row.querySelector('.descricao-cell');
-                
-                if (descricao) {
-                    if (descCell) {
-                        descCell.textContent = descricao;
-                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
-                        cachedData[sheetRangeC] = descricao;
-                    }
-                    row.classList.remove('bg-red-50');
-                } else {
-                    if (descCell) {
-                        descCell.textContent = '';
-                        const sheetRangeC = descCell.getAttribute('data-sheet-range');
-                        delete cachedData[sheetRangeC];
-                    }
-                    row.classList.add('bg-red-50');
-                    
-                    const timeSinceInput = Date.now() - lastInputTime;
-                    if (timeSinceInput > INPUT_DEBOUNCE) {
-                        playErrorSoundIfAllowed();
-                    }
-                }
             }
+            row.classList.add('bg-red-50');
             
-            saveToCache(cachedData, cacheKey);
-
-            element.dataset.originalValue = newValue;
-
-            if (newValue !== '') {
-                pendingUpdates.set(sheetRange, newValue);
-                editCount++;
-            } else {
-                pendingUpdates.delete(sheetRange);
-            }
-
-            updatePendingCount();
-
-            if (newValue !== '' && editCount >= BATCH_SIZE) {
-                processBatchUpdate();
+            const timeSinceInput = Date.now() - lastInputTime;
+            if (timeSinceInput > INPUT_DEBOUNCE) {
+                playErrorSoundIfAllowed();
             }
         }
+    }
+    
+    saveToCache(cachedData, cacheKey);
+    element.dataset.originalValue = newValue;
+
+    if (newValue !== '') {
+        pendingUpdates.set(sheetRange, newValue);
+        editCount++;
+    } else {
+        pendingUpdates.delete(sheetRange);
+    }
+
+    updatePendingCount();
+
+    if (newValue !== '' && editCount >= BATCH_SIZE) {
+        processBatchUpdate();
+    }
+}
 
         /**
          * ⚡⚡⚡ FUNÇÃO CORRIGIDA: Processa atualização em lote - AGORA COM SUPORTE A MÚLTIPLOS CONTADORES
@@ -5511,6 +5727,267 @@ function getDataAtual() {
     const agora = new Date();
     return `${agora.getFullYear()}-${(agora.getMonth()+1).toString().padStart(2, '0')}-${agora.getDate().toString().padStart(2, '0')}_${agora.getHours().toString().padStart(2, '0')}-${agora.getMinutes().toString().padStart(2, '0')}`;
 }
+
+
+
+
+
+
+/**
+ * ✅ NOVA FUNÇÃO: Manipula a edição da célula de quantidade (coluna B)
+ */
+function handleQuantidadeCellEdit(element, sheetRange, sheetName) {
+    const newValue = element.textContent.trim();
+    const originalValue = element.dataset.originalValue || '';
+
+    if (newValue === originalValue) {
+        return;
+    }
+
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    if (newValue === '') {
+        delete cachedData[sheetRange];
+    } else {
+        // ✅ SALVA O VALOR NO CACHE (será enviado em lote)
+        cachedData[sheetRange] = newValue;
+    }
+    
+    saveToCache(cachedData, cacheKey);
+    element.dataset.originalValue = newValue;
+
+    // ✅ ATUALIZA CONTAGEM DE PENDÊNCIAS
+    updatePendingCount();
+    
+    // ✅ SE TIVER MUITAS ALTERAÇÕES, ENVIA EM LOTE
+    if (editCount >= BATCH_SIZE) {
+        processBatchUpdate();
+    }
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Manipula teclas na célula de quantidade
+ */
+function handleQuantidadeKeyPress(event, sheetRange, sheetName) {
+    if (event.keyCode === 13) {
+        event.preventDefault();
+        
+        const element = event.target;
+        handleContagemCellEdit(element, sheetRange, sheetName);
+        
+        const currentRow = parseInt(sheetRange.slice(1));
+        const nextRow = currentRow + 1;
+        const nextRange = `A${nextRow}`;
+        const nextCell = document.querySelector(`td[data-sheet-range="${nextRange}"]`);
+        
+        if (nextCell) {
+            nextCell.focus();
+            moveCursorToEnd(nextCell);
+            nextCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // ✅ SE A PRÓXIMA CÉLULA TIVER CÓDIGO, ATUALIZA A QUANTIDADE VISUALMENTE
+            if (nextCell.textContent.trim() !== '') {
+                const nextRowElement = nextCell.closest('tr');
+                const nextRowIndex = parseInt(nextRange.slice(1));
+                const nextSheetRangeB = `B${nextRowIndex}`;
+                
+                const cacheKey = `${CACHE_KEY}_${currentContador}`;
+                const cachedData = loadFromCache(cacheKey);
+                
+                const quantidade = cachedData[nextSheetRangeB] || "1";
+                atualizarCelulaQuantidade(nextRowElement, nextSheetRangeB, quantidade);
+            }
+        }
+    }
+}
+
+
+
+
+/**
+ * ✅ FUNÇÃO: Alterar quantidade com botões +/-
+ */
+function alterarQuantidade(botao, mudanca, sheetRange, sheetName) {
+    const container = botao.closest('div');
+    const valorElement = container.querySelector('.quantidade-valor');
+    
+    // Pega o valor atual
+    let valorAtual = parseInt(valorElement.textContent.trim()) || 1;
+    
+    // Calcula novo valor (mínimo 1)
+    let novoValor = valorAtual + mudanca;
+    if (novoValor < 1) novoValor = 1;
+    
+    // Atualiza visualmente
+    valorElement.textContent = novoValor;
+    
+    // Salva no cache
+    salvarQuantidadeNoCache(sheetRange, novoValor.toString(), sheetName);
+    
+    // Atualiza o data-original-value
+    valorElement.dataset.originalValue = novoValor.toString();
+}
+
+/**
+ * ✅ FUNÇÃO: Atualizar quantidade manualmente (digitação)
+ */
+function atualizarQuantidadeManual(element, sheetRange, sheetName) {
+    const novoValor = element.textContent.trim();
+    
+    // Valida se é número e mínimo 1
+    if (novoValor === '' || isNaN(novoValor) || parseInt(novoValor) < 1) {
+        element.textContent = '1';
+        salvarQuantidadeNoCache(sheetRange, '1', sheetName);
+        element.dataset.originalValue = '1';
+    } else {
+        // Remove zeros à esquerda
+        const valorNumerico = parseInt(novoValor).toString();
+        element.textContent = valorNumerico;
+        salvarQuantidadeNoCache(sheetRange, valorNumerico, sheetName);
+        element.dataset.originalValue = valorNumerico;
+    }
+}
+
+/**
+ * ✅ FUNÇÃO: Validar teclas durante a digitação
+ */
+function validarTeclaQuantidade(event) {
+    // Permite: números, backspace, delete, setas, tab, enter
+    const teclasPermitidas = /[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|Tab|Enter/;
+    
+    if (!teclasPermitidas.test(event.key)) {
+        event.preventDefault();
+        return;
+    }
+    
+    // Enter salva e sai
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        event.target.blur();
+    }
+}
+
+/**
+ * ✅ FUNÇÃO: Salvar quantidade no cache
+ */
+function salvarQuantidadeNoCache(sheetRange, valor, sheetName) {
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    cachedData[sheetRange] = valor;
+    saveToCache(cachedData, cacheKey);
+    
+    // Atualiza contagem de pendências
+    updatePendingCount();
+    
+    // Incrementa contador de edições para envio em lote
+    editCount++;
+    if (editCount >= BATCH_SIZE) {
+        processBatchUpdate();
+    }
+}
+
+
+
+/**
+ * ✅ FUNÇÃO: Atualizar célula de quantidade quando código for inserido
+ */
+function atualizarCelulaQuantidade(rowElement, sheetRangeB, valor = "1") {
+    const cellB = rowElement.querySelector('.quantidade-cell');
+    
+    if (cellB) {
+        // Verifica se já tem botões (se não, cria)
+        if (!cellB.querySelector('.quantidade-valor')) {
+            cellB.innerHTML = `
+                <div class="flex items-center justify-center gap-1 w-full" style="height: 40px;">
+        <button onclick="alterarQuantidade(this, -10, '${sheetRangeB}', '${currentContador}')" 
+        class="botao-quantidade botao-grande"
+        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #6b7280; border-radius: 4px; transition: all 0.15s; background: transparent; border: none; cursor: pointer; font-size: 14px; font-weight: 500;"
+        title="Diminuir 10">
+    -
+</button>
+        <button onclick="alterarQuantidade(this, -1, '${sheetRangeB}', '${currentContador}')" 
+                class="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition duration-150 text-sm"
+                title="Diminuir 1">
+            −
+        </button>
+        <div class="quantidade-valor" contenteditable="true"
+             onblur="atualizarQuantidadeManual(this, '${sheetRangeB}', '${currentContador}')"
+             onkeydown="validarTeclaQuantidade(event)"
+             style="width: 5px; text-align: center; margin: 0 1px; padding: 0;"
+             data-sheet-range="${sheetRangeB}"
+             data-original-value="${valor}">
+             ${valor}
+        </div>
+        <button onclick="alterarQuantidade(this, 1, '${sheetRangeB}', '${currentContador}')" 
+                class="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition duration-150 text-sm"
+                title="Aumentar 1">
+            +
+        </button>
+        <button onclick="alterarQuantidade(this, 10, '${sheetRangeB}', '${currentContador}')" 
+        class="botao-quantidade botao-grande"
+        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #6b7280; border-radius: 4px; transition: all 0.15s; background: transparent; border: none; cursor: pointer; font-size: 14px; font-weight: 500;"
+        title="Aumentar 10">
+    +
+</button>
+    </div>
+            `;
+        } else {
+            // Apenas atualiza o valor
+            const valorElement = cellB.querySelector('.quantidade-valor');
+            if (valorElement) {
+                valorElement.textContent = valor;
+                valorElement.dataset.originalValue = valor;
+            }
+        }
+    }
+}
+
+/**
+ * ✅ FUNÇÃO: Limpar célula de quantidade quando código for removido
+ */
+function limparCelulaQuantidade(rowElement) {
+    const cellB = rowElement.querySelector('.quantidade-cell');
+    
+    if (cellB) {
+        cellB.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; color: #9ca3af;">
+                -
+            </div>
+        `;
+    }
+}
+
+
+/**
+ * ✅ FUNÇÃO: Atualizar todas as células de quantidade baseado nos dados do cache
+ */
+function atualizarTodasCelulasQuantidade() {
+    const cacheKey = `${CACHE_KEY}_${currentContador}`;
+    const cachedData = loadFromCache(cacheKey);
+    
+    const rows = document.querySelectorAll('#contagem-table tbody tr');
+    
+    rows.forEach(row => {
+        const cellA = row.querySelector('td:first-child');
+        if (cellA) {
+            const codigo = cellA.textContent.trim();
+            const rowIndex = cellA.getAttribute('data-sheet-range')?.slice(1);
+            
+            if (codigo !== '' && rowIndex) {
+                const sheetRangeB = `B${rowIndex}`;
+                const quantidade = cachedData[sheetRangeB] || "1";
+                atualizarCelulaQuantidade(row, sheetRangeB, quantidade);
+            }
+        }
+    });
+}
+
+
+		
+		
+		
 		
     </script>
 </body>
